@@ -498,3 +498,182 @@ cmake --build build --parallel 1
 auto rows = txn.exec_params("SELECT ...");
 if (rows.empty()) return json_error(404, "Not found");
 ```
+
+---
+
+# Roadmap v2.0: Как использовать новые фичи
+
+## WebSocket (Real-time уведомления)
+
+Подключитесь к WebSocket после логина:
+
+```javascript
+const token = localStorage.getItem('access_token');
+const companyId = await fetchUserData(); // из /api/v1/auth/me
+
+const ws = new WebSocket(
+  `ws://localhost:8000/ws/${companyId}/${token}`
+);
+
+ws.onmessage = (event) => {
+  const notification = JSON.parse(event.data);
+  console.log('Real-time update:', notification);
+  // Обновляем UI: новый клиент, задача, финанс
+};
+
+ws.onerror = () => console.error('WebSocket disconnected');
+```
+
+## Redis Cache
+
+Бэкенд кэширует:
+- Список клиентов компании (TTL 5 мин)
+- Активные задачи (TTL 2 мин)
+- Финансовые отчёты (TTL 30 мин)
+
+Кэш автоматически инвалидируется при UPDATE/DELETE.
+
+## Email уведомления
+
+Настрой в `.env`:
+
+```bash
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USER=your@gmail.com
+SMTP_PASSWORD=your_app_password  # App password (не обычный)
+```
+
+События отправляют email (async, не блокируют запрос):
+- Приглашение в команду
+- Назначение на задачу
+- Комментарий в клиенте
+
+## Telegram интеграция
+
+1. Создай бота: @BotFather в Telegram
+2. Скопируй token
+3. Добавь в `.env`:
+   ```bash
+   TELEGRAM_BOT_TOKEN=123456789:ABCdefGHIjklmnoPQRstuvwxyz
+   ```
+4. Пользователи могут привязать chat_id в настройках профиля
+5. События отправляются в Telegram (+ email)
+
+## Prometheus метрики
+
+```bash
+curl http://localhost:8000/metrics
+```
+
+Выведет:
+```
+crm_total_requests 1234
+crm_total_errors 2
+crm_db_queries 5678
+crm_active_connections 8
+crm_endpoint_requests{endpoint="/api/v1/clients"} 432
+```
+
+Интегрируй с Prometheus:
+
+```yaml
+# prometheus.yml
+scrape_configs:
+  - job_name: 'crm'
+    static_configs:
+      - targets: ['localhost:8000']
+    metrics_path: '/metrics'
+```
+
+## Rate Limiting
+
+По умолчанию: **1000 запросов в минуту** per company.
+
+Если превышено → HTTP 429 Too Many Requests.
+
+Настрой в коде (backend/src/api/handlers.cpp):
+```cpp
+if (!get_rate_limiter().allow_request(claims.company_id, 5000)) {
+    return json_error(429, "Rate limit exceeded");
+}
+```
+
+## CSV/Excel Export
+
+Экспортируй данные через API:
+
+```bash
+# Клиентов
+curl "http://localhost:8000/api/v1/export/clients?format=csv" \
+  -H "Authorization: Bearer $TOKEN" > clients.csv
+
+# Задач
+curl "http://localhost:8000/api/v1/export/tasks?format=csv" \
+  -H "Authorization: Bearer $TOKEN" > tasks.csv
+
+# Финансов
+curl "http://localhost:8000/api/v1/export/finance?format=csv" \
+  -H "Authorization: Bearer $TOKEN" > finance.csv
+```
+
+Формат CSV совместим с Excel, Google Sheets, Airtable.
+
+---
+
+## Обновление всех сервисов (с нулевым простоем)
+
+```bash
+# 1. Обнови код
+git pull origin main
+
+# 2. Пересобери backend (без остановки)
+docker-compose up -d --build --no-deps backend
+
+# 3. Пересобери frontend
+docker-compose up -d --build --no-deps frontend
+
+# Всё готово, клиенты не заметят перерыв благодаря load balancer Nginx
+```
+
+---
+
+## Troubleshooting v2.0
+
+### Redis connection refused
+```bash
+# Проверь что контейнер запущен
+docker-compose ps redis
+
+# Перезагрузи
+docker-compose restart redis
+
+# В .env: REDIS_HOST=redis (внутри docker-compose сети), не localhost
+```
+
+### Email не отправляется
+```bash
+# Проверь SMTP credentials в .env
+# Gmail требует "App password", не обычный пароль!
+# https://support.google.com/accounts/answer/185833
+
+# Логи backend:
+docker-compose logs backend | grep "Email"
+```
+
+### WebSocket не подключается
+```
+Убедись что:
+1. Токен валиден (не истёк)
+2. ws:// если http, wss:// если https
+3. company_id правильный (из /api/v1/auth/me)
+4. Backend запущен и слушает 8000
+```
+
+### Prometheus метрики пустые
+Метрики начинают собираться после первого запроса к API.
+```bash
+curl http://localhost:8000/api/health  # сделай первый запрос
+curl http://localhost:8000/metrics     # теперь будут данные
+```
+
