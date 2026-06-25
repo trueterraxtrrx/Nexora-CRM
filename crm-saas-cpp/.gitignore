@@ -1,0 +1,32 @@
+# Build
+build/
+*.o
+*.a
+*.so
+*.exe
+crm_backend
+
+# CMake
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+Makefile
+
+# Node
+node_modules/
+dist/
+.env
+.env.local
+
+# Docker
+.docker/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+.DS_Store
+
+# Logs
+*.log
+logs/

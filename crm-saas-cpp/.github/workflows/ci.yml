@@ -1,0 +1,95 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+jobs:
+  backend:
+    name: C++ Backend Build & Test
+    runs-on: ubuntu-24.04
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: crm_user
+          POSTGRES_PASSWORD: crm_pass
+          POSTGRES_DB: crm_test
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install system deps
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            build-essential cmake ninja-build git pkg-config \
+            libssl-dev libpq-dev libpqxx-dev libboost-all-dev \
+            libfmt-dev libspdlog-dev libbcrypt-dev libgtest-dev
+
+      - name: Install Crow (header-only)
+        run: |
+          git clone --depth 1 --branch v1.2.0 https://github.com/CrowCpp/Crow.git /tmp/crow
+          cd /tmp/crow && cmake -B build -DCROW_BUILD_EXAMPLES=OFF -DCROW_BUILD_TESTS=OFF
+          sudo cmake --install build
+
+      - name: Install nlohmann/json (header-only)
+        run: |
+          git clone --depth 1 --branch v3.11.3 https://github.com/nlohmann/json.git /tmp/json
+          cd /tmp/json && cmake -B build -DJSON_BuildTests=OFF
+          sudo cmake --install build
+
+      - name: Configure
+        working-directory: backend
+        run: cmake -B build -DCMAKE_BUILD_TYPE=Release -GNinja
+
+      - name: Build
+        working-directory: backend
+        run: cmake --build build --parallel $(nproc)
+
+      - name: Test
+        working-directory: backend/build
+        env:
+          JWT_SECRET: test_secret_key_for_ci_exactly_32chars
+        run: ctest --output-on-failure
+
+  frontend:
+    name: Frontend Build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+      - working-directory: frontend
+        run: npm ci && npm run build
+
+  docker:
+    name: Docker Build & Push
+    runs-on: ubuntu-latest
+    needs: [backend, frontend]
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker-compose build
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - run: |
+          docker tag crm-saas-cpp-backend ghcr.io/${{ github.repository }}/backend:latest
+          docker tag crm-saas-cpp-frontend ghcr.io/${{ github.repository }}/frontend:latest
+          docker push ghcr.io/${{ github.repository }}/backend:latest
+          docker push ghcr.io/${{ github.repository }}/frontend:latest
