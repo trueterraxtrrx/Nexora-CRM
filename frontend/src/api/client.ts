@@ -5,7 +5,6 @@ import type {
   Client, ClientCreate, ClientUpdate, ClientInteraction,
   Task, TaskCreate, TaskUpdate,
   Finance, FinanceCreate, FinanceReport,
-  DashboardStats, AuditLog,
 } from '../types'
 
 // ─────────────────────────────────────────────
@@ -44,13 +43,7 @@ api.interceptors.response.use(
 
 export const authApi = {
   login: async (credentials: LoginCredentials): Promise<AuthTokens> => {
-    // FastAPI OAuth2 ожидает form-data, не JSON
-    const form = new FormData()
-    form.append('username', credentials.email)
-    form.append('password', credentials.password)
-    const { data } = await api.post<AuthTokens>('/api/v1/auth/login', form, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    })
+    const { data } = await api.post<AuthTokens>('/api/v1/auth/login', credentials)
     return data
   },
 
@@ -71,12 +64,12 @@ export const authApi = {
 
 export const usersApi = {
   list: async (): Promise<User[]> => {
-    const { data } = await api.get<User[]>('/api/v1/users/')
+    const { data } = await api.get<User[]>('/api/v1/users')
     return data
   },
 
   create: async (payload: UserCreate): Promise<User> => {
-    const { data } = await api.post<User>('/api/v1/users/', payload)
+    const { data } = await api.post<User>('/api/v1/users', payload)
     return data
   },
 
@@ -102,7 +95,7 @@ export const clientsApi = {
     skip?: number
     limit?: number
   }): Promise<Client[]> => {
-    const { data } = await api.get<Client[]>('/api/v1/clients/', { params })
+    const { data } = await api.get<Client[]>('/api/v1/clients', { params })
     return data
   },
 
@@ -112,7 +105,7 @@ export const clientsApi = {
   },
 
   create: async (payload: ClientCreate): Promise<Client> => {
-    const { data } = await api.post<Client>('/api/v1/clients/', payload)
+    const { data } = await api.post<Client>('/api/v1/clients', payload)
     return data
   },
 
@@ -158,7 +151,7 @@ export const tasksApi = {
     skip?: number
     limit?: number
   }): Promise<Task[]> => {
-    const { data } = await api.get<Task[]>('/api/v1/tasks/', { params })
+    const { data } = await api.get<Task[]>('/api/v1/tasks', { params })
     return data
   },
 
@@ -168,7 +161,7 @@ export const tasksApi = {
   },
 
   create: async (payload: TaskCreate): Promise<Task> => {
-    const { data } = await api.post<Task>('/api/v1/tasks/', payload)
+    const { data } = await api.post<Task>('/api/v1/tasks', payload)
     return data
   },
 
@@ -194,12 +187,12 @@ export const financeApi = {
     date_to?: string
     client_id?: number
   }): Promise<Finance[]> => {
-    const { data } = await api.get<Finance[]>('/api/v1/finance/', { params })
+    const { data } = await api.get<Finance[]>('/api/v1/finance', { params })
     return data
   },
 
   create: async (payload: FinanceCreate): Promise<Finance> => {
-    const { data } = await api.post<Finance>('/api/v1/finance/', payload)
+    const { data } = await api.post<Finance>('/api/v1/finance', payload)
     return data
   },
 

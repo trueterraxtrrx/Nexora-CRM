@@ -1,5 +1,6 @@
 #include "core/database.hpp"
 #include <spdlog/spdlog.h>
+#include <memory>
 
 namespace crm::core {
 
@@ -26,23 +27,23 @@ void run_migrations(pqxx::connection& conn) {
     // Enums
     txn.exec(R"SQL(
         DO $$ BEGIN
-            CREATE TYPE user_role IF NOT EXISTS AS ENUM ('admin','manager','user');
+            CREATE TYPE user_role AS ENUM ('admin','manager','user');
         EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
         DO $$ BEGIN
-            CREATE TYPE subscription_plan IF NOT EXISTS AS ENUM ('free','pro','enterprise');
+            CREATE TYPE subscription_plan AS ENUM ('free','pro','enterprise');
         EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
         DO $$ BEGIN
-            CREATE TYPE task_status IF NOT EXISTS AS ENUM ('todo','in_progress','done','cancelled');
+            CREATE TYPE task_status AS ENUM ('todo','in_progress','done','cancelled');
         EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
         DO $$ BEGIN
-            CREATE TYPE task_priority IF NOT EXISTS AS ENUM ('low','medium','high','urgent');
+            CREATE TYPE task_priority AS ENUM ('low','medium','high','urgent');
         EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
         DO $$ BEGIN
-            CREATE TYPE finance_type IF NOT EXISTS AS ENUM ('income','expense');
+            CREATE TYPE finance_type AS ENUM ('income','expense');
         EXCEPTION WHEN duplicate_object THEN NULL; END $$;
     )SQL");
 

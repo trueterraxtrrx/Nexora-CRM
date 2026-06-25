@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.2.0] - 2026-06-26
+
+### Fixed
+- Restored missing backend public headers for API handlers, middleware, core services, cache, notifications, metrics, and export modules.
+- Added missing backend source files to CMake and fixed bcrypt/libcrypt linkage.
+- Fixed PostgreSQL enum migrations and nullable client field inserts.
+- Fixed frontend Vite/TypeScript build issues, auth login payload format, and API paths.
+- Fixed Docker build/runtime issues for frontend nginx config and backend healthcheck dependencies.
+
 ## [2.0.0] - 2025-01-26
 
 ### 🚀 Roadmap Implemented
@@ -112,4 +121,3 @@ All notable changes to this project will be documented in this file.
 - [ ] Two-factor authentication
 - [ ] S3 file storage integration
 - [ ] Database read replicas for horizontal scaling
-

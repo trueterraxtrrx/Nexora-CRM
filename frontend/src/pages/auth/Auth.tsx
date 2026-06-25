@@ -3,10 +3,9 @@ import { Link } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { Building2, Loader2 } from 'lucide-react'
+import { Building2 } from 'lucide-react'
 import { useAuth } from '../../hooks/useAuth'
 import { Button, Input } from '../../components/ui'
-import type { AxiosError } from 'axios'
 
 // ─────────────────────────────────────────────
 // LOGIN

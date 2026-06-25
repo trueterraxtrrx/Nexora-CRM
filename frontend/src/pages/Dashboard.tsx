@@ -6,7 +6,7 @@ import {
 import { Users, CheckSquare, TrendingUp, TrendingDown, Clock, AlertCircle } from 'lucide-react'
 import { Card, StatCard, Badge } from '../components/ui'
 import { financeApi, tasksApi, clientsApi } from '../api/client'
-import { format, subMonths } from 'date-fns'
+import { format } from 'date-fns'
 import { ru } from 'date-fns/locale'
 
 const MONTHS = ['Янв','Фев','Мар','Апр','Май','Июн','Июл','Авг','Сен','Окт','Ноя','Дек']

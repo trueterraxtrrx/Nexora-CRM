@@ -145,7 +145,7 @@ export interface TaskCreate {
   assignee_id?: number
 }
 
-export interface TaskUpdate extends Partial<TaskCreate> {}
+export type TaskUpdate = Partial<TaskCreate>
 
 // ─────────────────────────────────────────────
 // FINANCE

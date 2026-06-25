@@ -6,6 +6,8 @@
 #include <spdlog/spdlog.h>
 #include <nlohmann/json.hpp>
 #include <fmt/format.h>
+#include <algorithm>
+#include <vector>
 
 namespace crm::api {
 
@@ -34,9 +36,10 @@ void register_clients_routes(AppType& app) {
 
     // ── GET /api/v1/clients  ───────────────────────────────────────────────
     CROW_ROUTE(app, "/api/v1/clients").methods(crow::HTTPMethod::Get)
-    ([](const crow::request& req, crow::response& res, AppType::context& ctx) {
+    ([&app](const crow::request& req, crow::response& res) {
+        auto& ctx = app.get_context<AuthMiddleware>(req);
         if (!require_auth(req, res, ctx)) return;
-        auto& claims = *ctx.get<AuthMiddleware>().claims;
+        auto& claims = *ctx.claims;
 
         auto search    = req.url_params.get("search");
         auto is_active = req.url_params.get("is_active");
@@ -48,41 +51,29 @@ void register_clients_routes(AppType& app) {
         try {
             res = get_db().with_transaction<crow::response>([&](pqxx::work& txn) {
                 // Динамически строим WHERE
-                std::string where = "WHERE company_id=$1";
-                std::vector<std::string> params = {std::to_string(claims.company_id)};
-                int param_idx = 2;
+                std::string where = "WHERE company_id=" + txn.quote(claims.company_id);
 
                 if (is_active) {
-                    where += fmt::format(" AND is_active=${}", param_idx++);
-                    params.push_back(std::string(is_active) == "true" ? "true" : "false");
+                    where += " AND is_active=" + txn.quote(std::string(is_active) == "true");
                 }
                 if (search) {
                     std::string like = "%" + std::string(search) + "%";
                     where += fmt::format(
-                        " AND (name ILIKE ${0} OR email ILIKE ${0} OR phone ILIKE ${0} OR company_name ILIKE ${0})",
-                        param_idx++
+                        " AND (name ILIKE {0} OR email ILIKE {0} OR phone ILIKE {0} OR company_name ILIKE {0})",
+                        txn.quote(like)
                     );
-                    params.push_back(like);
                 }
                 if (tag) {
-                    where += fmt::format(" AND tags ILIKE ${}", param_idx++);
-                    params.push_back("%" + std::string(tag) + "%");
+                    where += " AND tags ILIKE " + txn.quote("%" + std::string(tag) + "%");
                 }
 
-                where += fmt::format(" ORDER BY created_at DESC LIMIT ${} OFFSET ${}",
-                    param_idx, param_idx + 1);
-                params.push_back(std::to_string(limit));
-                params.push_back(std::to_string(skip));
+                where += fmt::format(" ORDER BY created_at DESC LIMIT {} OFFSET {}", limit, skip);
 
                 std::string sql = "SELECT id,company_id,name,email,phone,company_name,"
                                   "notes,tags,is_active,created_at,updated_at "
                                   "FROM clients " + where;
 
-                // Формируем вектор params для exec_params
-                pqxx::params pg_params;
-                for (auto& p : params) pg_params.append(p);
-
-                auto rows = txn.exec(sql, pg_params);
+                auto rows = txn.exec(sql);
 
                 json result = json::array();
                 for (const auto& row : rows)
@@ -98,9 +89,10 @@ void register_clients_routes(AppType& app) {
 
     // ── POST /api/v1/clients ───────────────────────────────────────────────
     CROW_ROUTE(app, "/api/v1/clients").methods(crow::HTTPMethod::Post)
-    ([](const crow::request& req, crow::response& res, AppType::context& ctx) {
+    ([&app](const crow::request& req, crow::response& res) {
+        auto& ctx = app.get_context<AuthMiddleware>(req);
         if (!require_auth(req, res, ctx)) return;
-        auto& claims = *ctx.get<AuthMiddleware>().claims;
+        auto& claims = *ctx.claims;
 
         auto body = parse_body(req);
         if (!body || !body->contains("name")) {
@@ -133,14 +125,14 @@ void register_clients_routes(AppType& app) {
 
                 auto row = txn.exec_params1(
                     "INSERT INTO clients(company_id,name,email,phone,company_name,notes,tags) "
-                    "VALUES($1,$2,$3,$4,$5,$6,$7) "
+                    "VALUES($1,$2,NULLIF($3,''),NULLIF($4,''),NULLIF($5,''),NULLIF($6,''),NULLIF($7,'')) "
                     "RETURNING id,company_id,name,email,phone,company_name,notes,tags,is_active,created_at,updated_at",
                     claims.company_id, name,
-                    email.has_value() ? pqxx::field_type(email.value()) : pqxx::field_type(),
-                    phone.has_value() ? pqxx::field_type(phone.value()) : pqxx::field_type(),
-                    company_name.has_value() ? pqxx::field_type(company_name.value()) : pqxx::field_type(),
-                    notes.has_value() ? pqxx::field_type(notes.value()) : pqxx::field_type(),
-                    tags.has_value() ? pqxx::field_type(tags.value()) : pqxx::field_type()
+                    email.value_or(""),
+                    phone.value_or(""),
+                    company_name.value_or(""),
+                    notes.value_or(""),
+                    tags.value_or("")
                 );
 
                 int new_id = row["id"].as<int>();
@@ -157,9 +149,10 @@ void register_clients_routes(AppType& app) {
 
     // ── GET /api/v1/clients/:id ────────────────────────────────────────────
     CROW_ROUTE(app, "/api/v1/clients/<int>").methods(crow::HTTPMethod::Get)
-    ([](const crow::request& req, crow::response& res, AppType::context& ctx, int client_id) {
+    ([&app](const crow::request& req, crow::response& res, int client_id) {
+        auto& ctx = app.get_context<AuthMiddleware>(req);
         if (!require_auth(req, res, ctx)) return;
-        auto& claims = *ctx.get<AuthMiddleware>().claims;
+        auto& claims = *ctx.claims;
 
         try {
             res = get_db().with_transaction<crow::response>([&](pqxx::work& txn) {
@@ -178,9 +171,10 @@ void register_clients_routes(AppType& app) {
 
     // ── PATCH /api/v1/clients/:id ──────────────────────────────────────────
     CROW_ROUTE(app, "/api/v1/clients/<int>").methods(crow::HTTPMethod::Patch)
-    ([](const crow::request& req, crow::response& res, AppType::context& ctx, int client_id) {
+    ([&app](const crow::request& req, crow::response& res, int client_id) {
+        auto& ctx = app.get_context<AuthMiddleware>(req);
         if (!require_auth(req, res, ctx)) return;
-        auto& claims = *ctx.get<AuthMiddleware>().claims;
+        auto& claims = *ctx.claims;
 
         auto body = parse_body(req);
         if (!body) { res = json_error(400, "Invalid JSON"); return; }
@@ -205,21 +199,16 @@ void register_clients_routes(AppType& app) {
                 if (updates.empty()) return json_error(400, "Нет полей для обновления");
 
                 std::string set_clause = "updated_at=NOW()";
-                pqxx::params params;
-                int idx = 1;
                 for (auto& [col, val] : updates) {
-                    set_clause += fmt::format(",{}=${}", col, idx++);
-                    params.append(val);
+                    set_clause += fmt::format(",{}={}", col, txn.quote(val));
                 }
-                params.append(client_id);
-                params.append(claims.company_id);
 
                 std::string sql = "UPDATE clients SET " + set_clause +
-                    fmt::format(" WHERE id=${} AND company_id=${}"
+                    fmt::format(" WHERE id={} AND company_id={}"
                     " RETURNING id,company_id,name,email,phone,company_name,notes,tags,is_active,created_at,updated_at",
-                    idx, idx + 1);
+                    txn.quote(client_id), txn.quote(claims.company_id));
 
-                auto updated = txn.exec1(sql, params);
+                auto updated = txn.exec1(sql);
                 write_audit(txn, claims.company_id, claims.user_id,
                     "update_client", "client", client_id, *body);
 
@@ -233,9 +222,10 @@ void register_clients_routes(AppType& app) {
 
     // ── DELETE /api/v1/clients/:id ─────────────────────────────────────────
     CROW_ROUTE(app, "/api/v1/clients/<int>").methods(crow::HTTPMethod::Delete)
-    ([](const crow::request& req, crow::response& res, AppType::context& ctx, int client_id) {
+    ([&app](const crow::request& req, crow::response& res, int client_id) {
+        auto& ctx = app.get_context<AuthMiddleware>(req);
         if (!require_role(req, res, ctx, {"admin", "manager"})) return;
-        auto& claims = *ctx.get<AuthMiddleware>().claims;
+        auto& claims = *ctx.claims;
 
         try {
             res = get_db().with_transaction<crow::response>([&](pqxx::work& txn) {
@@ -260,9 +250,10 @@ void register_clients_routes(AppType& app) {
 
     // ── GET /api/v1/clients/:id/interactions ──────────────────────────────
     CROW_ROUTE(app, "/api/v1/clients/<int>/interactions").methods(crow::HTTPMethod::Get)
-    ([](const crow::request& req, crow::response& res, AppType::context& ctx, int client_id) {
+    ([&app](const crow::request& req, crow::response& res, int client_id) {
+        auto& ctx = app.get_context<AuthMiddleware>(req);
         if (!require_auth(req, res, ctx)) return;
-        auto& claims = *ctx.get<AuthMiddleware>().claims;
+        auto& claims = *ctx.claims;
 
         try {
             res = get_db().with_transaction<crow::response>([&](pqxx::work& txn) {
@@ -299,9 +290,10 @@ void register_clients_routes(AppType& app) {
 
     // ── POST /api/v1/clients/:id/interactions ─────────────────────────────
     CROW_ROUTE(app, "/api/v1/clients/<int>/interactions").methods(crow::HTTPMethod::Post)
-    ([](const crow::request& req, crow::response& res, AppType::context& ctx, int client_id) {
+    ([&app](const crow::request& req, crow::response& res, int client_id) {
+        auto& ctx = app.get_context<AuthMiddleware>(req);
         if (!require_auth(req, res, ctx)) return;
-        auto& claims = *ctx.get<AuthMiddleware>().claims;
+        auto& claims = *ctx.claims;
 
         auto body = parse_body(req);
         if (!body || !body->contains("type") || !body->contains("content")) {

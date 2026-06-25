@@ -6,6 +6,7 @@
 #include "utils/slugify.hpp"
 #include <spdlog/spdlog.h>
 #include <nlohmann/json.hpp>
+#include <utility>
 
 namespace crm::api {
 
@@ -17,7 +18,7 @@ void register_auth_routes(AppType& app) {
 
     // ── POST /api/v1/auth/register ─────────────────────────────────────────
     CROW_ROUTE(app, "/api/v1/auth/register").methods(crow::HTTPMethod::Post)
-    ([](const crow::request& req) -> crow::response {
+    ([&app](const crow::request& req) -> crow::response {
         auto body = parse_body(req);
         if (!body) return json_error(400, "Invalid JSON");
 
@@ -93,7 +94,7 @@ void register_auth_routes(AppType& app) {
 
     // ── POST /api/v1/auth/login ────────────────────────────────────────────
     CROW_ROUTE(app, "/api/v1/auth/login").methods(crow::HTTPMethod::Post)
-    ([](const crow::request& req) -> crow::response {
+    ([&app](const crow::request& req) -> crow::response {
         auto body = parse_body(req);
         if (!body) return json_error(400, "Invalid JSON");
 
@@ -141,9 +142,10 @@ void register_auth_routes(AppType& app) {
 
     // ── GET /api/v1/auth/me ────────────────────────────────────────────────
     CROW_ROUTE(app, "/api/v1/auth/me").methods(crow::HTTPMethod::Get)
-    ([](const crow::request& req, crow::response& res, AppType::context& ctx) {
+    ([&app](const crow::request& req, crow::response& res) {
+        auto& ctx = app.get_context<AuthMiddleware>(req);
         if (!require_auth(req, res, ctx)) return;
-        auto& claims = *ctx.get<AuthMiddleware>().claims;
+        auto& claims = *ctx.claims;
 
         try {
             auto result = get_db().with_transaction<crow::response>([&](pqxx::work& txn) {
@@ -166,7 +168,7 @@ void register_auth_routes(AppType& app) {
                     {"last_login",       row["last_login"].is_null() ? nullptr : json(row["last_login"].as<std::string>())}
                 });
             });
-            res = result;
+            res = std::move(result);
         } catch (const pqxx::unexpected_rows&) {
             res = json_error(401, "Пользователь не найден");
         } catch (const std::exception& e) {

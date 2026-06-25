@@ -12,10 +12,10 @@ RUN apt-get update && apt-get install -y \
     libssl-dev \
     libpq-dev \
     libpqxx-dev \
+    libasio-dev \
     libboost-all-dev \
     libfmt-dev \
     libspdlog-dev \
-    libbcrypt-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # Устанавливаем Crow (header-only)
@@ -46,12 +46,13 @@ FROM ubuntu:24.04 AS runtime
 ENV DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update && apt-get install -y \
-    libssl3 \
-    libpq5 \
-    libpqxx-7.9 \
-    libfmt10 \
-    libspdlog1.12 \
-    libbcrypt0 \
+    libssl-dev \
+    libpq-dev \
+    libpqxx-dev \
+    libfmt-dev \
+    libspdlog-dev \
+    libcrypt1 \
+    curl \
     ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 

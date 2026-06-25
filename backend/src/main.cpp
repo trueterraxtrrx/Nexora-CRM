@@ -30,7 +30,7 @@ int main() {
     // Миграции — выполняем через отдельное соединение при старте
     {
         auto conn = crm::core::get_db().acquire();
-        crm::core::run_migrations(conn.get());
+        crm::core::run_migrations(*conn);
     }
 
     // ── JWT ───────────────────────────────────────────────────────────────
@@ -54,7 +54,7 @@ int main() {
     // ── Health check ──────────────────────────────────────────────────────
     CROW_ROUTE(app, "/api/health")
     ([]() {
-        return crow::response(200, R"({"status":"ok","version":"1.0.0"})");
+        return crow::response(200, R"({"status":"ok","version":"2.2.0"})");
     });
 
     // 404 handler

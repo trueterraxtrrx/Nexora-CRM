@@ -6,6 +6,8 @@
 #include <spdlog/spdlog.h>
 #include <nlohmann/json.hpp>
 #include <fmt/format.h>
+#include <algorithm>
+#include <vector>
 
 namespace crm::api {
 
@@ -34,9 +36,10 @@ void register_tasks_routes(AppType& app) {
 
     // ── GET /api/v1/tasks ─────────────────────────────────────────────────
     CROW_ROUTE(app, "/api/v1/tasks").methods(crow::HTTPMethod::Get)
-    ([](const crow::request& req, crow::response& res, AppType::context& ctx) {
+    ([&app](const crow::request& req, crow::response& res) {
+        auto& ctx = app.get_context<AuthMiddleware>(req);
         if (!require_auth(req, res, ctx)) return;
-        auto& claims = *ctx.get<AuthMiddleware>().claims;
+        auto& claims = *ctx.claims;
 
         int skip  = req.url_params.get("skip")  ? std::stoi(req.url_params.get("skip"))  : 0;
         int limit = req.url_params.get("limit") ? std::stoi(req.url_params.get("limit")) : 50;
@@ -48,36 +51,29 @@ void register_tasks_routes(AppType& app) {
 
         try {
             res = get_db().with_transaction<crow::response>([&](pqxx::work& txn) {
-                std::string where = "WHERE company_id=$1";
-                pqxx::params params;
-                params.append(claims.company_id);
-                int idx = 2;
+                std::string where = "WHERE company_id=" + txn.quote(claims.company_id);
 
                 if (status_f) {
-                    where += fmt::format(" AND status=${}", idx++);
-                    params.append(std::string(status_f));
+                    where += " AND status=" + txn.quote(std::string(status_f));
                 }
                 if (priority_f) {
-                    where += fmt::format(" AND priority=${}", idx++);
-                    params.append(std::string(priority_f));
+                    where += " AND priority=" + txn.quote(std::string(priority_f));
                 }
                 if (overdue_f && std::string(overdue_f) == "true") {
                     where += " AND deadline < NOW() AND status NOT IN ('done','cancelled')";
                 }
 
                 where += fmt::format(
-                    " ORDER BY deadline ASC NULLS LAST, created_at DESC LIMIT ${} OFFSET ${}",
-                    idx, idx + 1
+                    " ORDER BY deadline ASC NULLS LAST, created_at DESC LIMIT {} OFFSET {}",
+                    limit, skip
                 );
-                params.append(limit);
-                params.append(skip);
 
                 std::string sql =
                     "SELECT id,company_id,title,description,status,priority,"
                     "deadline,client_id,assignee_id,created_at,updated_at,completed_at "
                     "FROM tasks " + where;
 
-                auto rows = txn.exec(sql, params);
+                auto rows = txn.exec(sql);
                 json result = json::array();
                 for (const auto& row : rows) result.push_back(task_to_json(row));
                 return json_ok(result);
@@ -90,9 +86,10 @@ void register_tasks_routes(AppType& app) {
 
     // ── POST /api/v1/tasks ────────────────────────────────────────────────
     CROW_ROUTE(app, "/api/v1/tasks").methods(crow::HTTPMethod::Post)
-    ([](const crow::request& req, crow::response& res, AppType::context& ctx) {
+    ([&app](const crow::request& req, crow::response& res) {
+        auto& ctx = app.get_context<AuthMiddleware>(req);
         if (!require_auth(req, res, ctx)) return;
-        auto& claims = *ctx.get<AuthMiddleware>().claims;
+        auto& claims = *ctx.claims;
 
         auto body = parse_body(req);
         if (!body || !body->contains("title")) {
@@ -110,22 +107,19 @@ void register_tasks_routes(AppType& app) {
                 auto client_id   = get_optional<int>(*body, "client_id");
                 auto assignee_id = get_optional<int>(*body, "assignee_id");
 
-                pqxx::params params;
-                params.append(claims.company_id);
-                params.append(title);
-                params.append(description.value_or(""));
-                params.append(status);
-                params.append(priority);
-                if (deadline)    params.append(*deadline);   else params.append(pqxx::zview());
-                if (client_id)   params.append(*client_id);  else params.append(pqxx::zview());
-                if (assignee_id) params.append(*assignee_id);else params.append(pqxx::zview());
-
                 auto row = txn.exec_params1(
                     "INSERT INTO tasks(company_id,title,description,status,priority,deadline,client_id,assignee_id) "
                     "VALUES($1,$2,NULLIF($3,''),$4,$5,NULLIF($6,'')::timestamptz,NULLIF($7,'')::int,NULLIF($8,'')::int) "
                     "RETURNING id,company_id,title,description,status,priority,deadline,"
                     "client_id,assignee_id,created_at,updated_at,completed_at",
-                    params
+                    claims.company_id,
+                    title,
+                    description.value_or(""),
+                    status,
+                    priority,
+                    deadline.value_or(""),
+                    client_id ? std::to_string(*client_id) : "",
+                    assignee_id ? std::to_string(*assignee_id) : ""
                 );
 
                 int new_id = row["id"].as<int>();
@@ -142,9 +136,10 @@ void register_tasks_routes(AppType& app) {
 
     // ── GET /api/v1/tasks/:id ─────────────────────────────────────────────
     CROW_ROUTE(app, "/api/v1/tasks/<int>").methods(crow::HTTPMethod::Get)
-    ([](const crow::request& req, crow::response& res, AppType::context& ctx, int task_id) {
+    ([&app](const crow::request& req, crow::response& res, int task_id) {
+        auto& ctx = app.get_context<AuthMiddleware>(req);
         if (!require_auth(req, res, ctx)) return;
-        auto& claims = *ctx.get<AuthMiddleware>().claims;
+        auto& claims = *ctx.claims;
         try {
             res = get_db().with_transaction<crow::response>([&](pqxx::work& txn) {
                 auto rows = txn.exec_params(
@@ -163,9 +158,10 @@ void register_tasks_routes(AppType& app) {
 
     // ── PATCH /api/v1/tasks/:id ───────────────────────────────────────────
     CROW_ROUTE(app, "/api/v1/tasks/<int>").methods(crow::HTTPMethod::Patch)
-    ([](const crow::request& req, crow::response& res, AppType::context& ctx, int task_id) {
+    ([&app](const crow::request& req, crow::response& res, int task_id) {
+        auto& ctx = app.get_context<AuthMiddleware>(req);
         if (!require_auth(req, res, ctx)) return;
-        auto& claims = *ctx.get<AuthMiddleware>().claims;
+        auto& claims = *ctx.claims;
 
         auto body = parse_body(req);
         if (!body) { res = json_error(400, "Invalid JSON"); return; }
@@ -196,22 +192,17 @@ void register_tasks_routes(AppType& app) {
                 std::string set_clause = "updated_at=NOW()";
                 if (going_done) set_clause += ",completed_at=NOW()";
 
-                pqxx::params params;
-                int idx = 1;
                 for (auto& [col, val] : updates) {
-                    set_clause += fmt::format(",{}=${}", col, idx++);
-                    params.append(val);
+                    set_clause += fmt::format(",{}={}", col, txn.quote(val));
                 }
-                params.append(task_id);
-                params.append(claims.company_id);
 
                 std::string sql = "UPDATE tasks SET " + set_clause +
-                    fmt::format(" WHERE id=${} AND company_id=${}"
+                    fmt::format(" WHERE id={} AND company_id={}"
                     " RETURNING id,company_id,title,description,status,priority,deadline,"
                     "client_id,assignee_id,created_at,updated_at,completed_at",
-                    idx, idx + 1);
+                    txn.quote(task_id), txn.quote(claims.company_id));
 
-                auto updated = txn.exec1(sql, params);
+                auto updated = txn.exec1(sql);
                 write_audit(txn, claims.company_id, claims.user_id,
                     "update_task", "task", task_id, *body);
 
@@ -225,9 +216,10 @@ void register_tasks_routes(AppType& app) {
 
     // ── DELETE /api/v1/tasks/:id ──────────────────────────────────────────
     CROW_ROUTE(app, "/api/v1/tasks/<int>").methods(crow::HTTPMethod::Delete)
-    ([](const crow::request& req, crow::response& res, AppType::context& ctx, int task_id) {
+    ([&app](const crow::request& req, crow::response& res, int task_id) {
+        auto& ctx = app.get_context<AuthMiddleware>(req);
         if (!require_auth(req, res, ctx)) return;
-        auto& claims = *ctx.get<AuthMiddleware>().claims;
+        auto& claims = *ctx.claims;
         try {
             res = get_db().with_transaction<crow::response>([&](pqxx::work& txn) {
                 auto rows = txn.exec_params(

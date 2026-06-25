@@ -4,6 +4,8 @@ if(NOT GTest_FOUND)
     return()
 endif()
 
+find_library(BCRYPT_LIBRARY bcrypt crypt REQUIRED)
+
 add_executable(crm_tests
     test_jwt.cpp
     test_password.cpp
@@ -20,6 +22,7 @@ target_link_libraries(crm_tests PRIVATE
     OpenSSL::Crypto
     spdlog::spdlog
     fmt::fmt
+    ${BCRYPT_LIBRARY}
 )
 
 # Линкуем только нужные .cpp (без main.cpp и handlers)

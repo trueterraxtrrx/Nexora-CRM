@@ -6,6 +6,7 @@
 #include <spdlog/spdlog.h>
 #include <nlohmann/json.hpp>
 #include <fmt/format.h>
+#include <vector>
 
 namespace crm::api {
 
@@ -32,9 +33,10 @@ void register_users_routes(AppType& app) {
 
     // ── GET /api/v1/users ─────────────────────────────────────────────────
     CROW_ROUTE(app, "/api/v1/users").methods(crow::HTTPMethod::Get)
-    ([](const crow::request& req, crow::response& res, AppType::context& ctx) {
+    ([&app](const crow::request& req, crow::response& res) {
+        auto& ctx = app.get_context<AuthMiddleware>(req);
         if (!require_auth(req, res, ctx)) return;
-        auto& claims = *ctx.get<AuthMiddleware>().claims;
+        auto& claims = *ctx.claims;
 
         try {
             res = get_db().with_transaction<crow::response>([&](pqxx::work& txn) {
@@ -56,9 +58,10 @@ void register_users_routes(AppType& app) {
 
     // ── POST /api/v1/users  (только admin) ───────────────────────────────
     CROW_ROUTE(app, "/api/v1/users").methods(crow::HTTPMethod::Post)
-    ([](const crow::request& req, crow::response& res, AppType::context& ctx) {
+    ([&app](const crow::request& req, crow::response& res) {
+        auto& ctx = app.get_context<AuthMiddleware>(req);
         if (!require_role(req, res, ctx, {"admin"})) return;
-        auto& claims = *ctx.get<AuthMiddleware>().claims;
+        auto& claims = *ctx.claims;
 
         auto body = parse_body(req);
         if (!body || !body->contains("email") || !body->contains("password")) {
@@ -118,9 +121,10 @@ void register_users_routes(AppType& app) {
 
     // ── PATCH /api/v1/users/:id ───────────────────────────────────────────
     CROW_ROUTE(app, "/api/v1/users/<int>").methods(crow::HTTPMethod::Patch)
-    ([](const crow::request& req, crow::response& res, AppType::context& ctx, int user_id) {
+    ([&app](const crow::request& req, crow::response& res, int user_id) {
+        auto& ctx = app.get_context<AuthMiddleware>(req);
         if (!require_auth(req, res, ctx)) return;
-        auto& claims = *ctx.get<AuthMiddleware>().claims;
+        auto& claims = *ctx.claims;
 
         // Можно редактировать себя или (если admin) любого в компании
         if (claims.user_id != user_id && claims.role != "admin") {
@@ -154,23 +158,18 @@ void register_users_routes(AppType& app) {
                 if (updates.empty()) return json_error(400, "Нет полей для обновления");
 
                 std::string set_clause;
-                pqxx::params params;
-                int idx = 1;
                 for (auto& [col, val] : updates) {
                     if (!set_clause.empty()) set_clause += ",";
-                    set_clause += fmt::format("{}=${}", col, idx++);
-                    params.append(val);
+                    set_clause += fmt::format("{}={}", col, txn.quote(val));
                 }
-                params.append(user_id);
-                params.append(claims.company_id);
 
                 std::string sql = "UPDATE users SET " + set_clause +
-                    fmt::format(" WHERE id=${} AND company_id=${}"
+                    fmt::format(" WHERE id={} AND company_id={}"
                     " RETURNING id,company_id,email,full_name,role,is_active,"
                     "notify_email,telegram_chat_id,created_at,last_login",
-                    idx, idx + 1);
+                    txn.quote(user_id), txn.quote(claims.company_id));
 
-                auto updated = txn.exec1(sql, params);
+                auto updated = txn.exec1(sql);
                 return json_ok(user_to_json(updated));
             });
         } catch (const std::exception& e) {
@@ -181,9 +180,10 @@ void register_users_routes(AppType& app) {
 
     // ── DELETE /api/v1/users/:id  (деактивация, только admin) ────────────
     CROW_ROUTE(app, "/api/v1/users/<int>").methods(crow::HTTPMethod::Delete)
-    ([](const crow::request& req, crow::response& res, AppType::context& ctx, int user_id) {
+    ([&app](const crow::request& req, crow::response& res, int user_id) {
+        auto& ctx = app.get_context<AuthMiddleware>(req);
         if (!require_role(req, res, ctx, {"admin"})) return;
-        auto& claims = *ctx.get<AuthMiddleware>().claims;
+        auto& claims = *ctx.claims;
 
         if (claims.user_id == user_id) {
             res = json_error(400, "Нельзя деактивировать собственный аккаунт");
