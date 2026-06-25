@@ -47,7 +47,7 @@
 | Слой         | Технология                            | Зачем                                        |
 |--------------|---------------------------------------|----------------------------------------------|
 | HTTP Server  | [Crow 1.2](https://crowcpp.org)       | Lightweight, zero-dep, header-only C++ Sinatra|
-| Database     | libpqxx 7 + PostgreSQL 16             | Типобезопасный C++ клиент, пул соединений    |
+| Database     | libpqxx 7 + PostgreSQL 16             | type-safe C++ клиент, пул соединений         |
 | Auth         | JWT HS256 (OpenSSL HMAC-SHA256)       | Stateless, без сторонних JWT либ             |
 | Passwords    | bcrypt (libbcrypt, cost=12)           | Стойкий к brute-force                        |
 | JSON         | nlohmann/json (header-only)           | Самая популярная JSON либа для C++           |
