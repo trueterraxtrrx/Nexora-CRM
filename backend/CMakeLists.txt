@@ -1,43 +1,25 @@
 cmake_minimum_required(VERSION 3.20)
-project(crm_backend VERSION 1.0.0 LANGUAGES CXX)
+project(crm_backend VERSION 2.0.0 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_EXTENSIONS OFF)
 
-# Release flags
 if(CMAKE_BUILD_TYPE STREQUAL "Release")
     add_compile_options(-O3 -march=native -flto)
 endif()
 
-# Warnings
 add_compile_options(-Wall -Wextra -Wpedantic -Wno-unused-parameter)
 
-# ─── Dependencies via find_package ───────────────────────────────────────────
-
-# Crow (header-only HTTP framework)
+# Dependencies
 find_package(Crow REQUIRED)
-
-# libpqxx (PostgreSQL C++ client)
 find_package(libpqxx REQUIRED)
-
-# OpenSSL (JWT signing)
 find_package(OpenSSL REQUIRED)
-
-# nlohmann/json (header-only)
 find_package(nlohmann_json REQUIRED)
-
-# bcrypt
-find_package(BCrypt QUIET)
-
-# spdlog (structured logging)
 find_package(spdlog REQUIRED)
-
-# fmt
 find_package(fmt REQUIRED)
+find_package(hiredis QUIET)
 
-# ─── Sources ─────────────────────────────────────────────────────────────────
-
+# Sources
 set(SOURCES
     src/main.cpp
     src/core/config.cpp
@@ -45,18 +27,18 @@ set(SOURCES
     src/core/jwt.cpp
     src/core/password.cpp
     src/core/middleware.cpp
+    src/core/rate_limiter.cpp
     src/api/auth_handler.cpp
     src/api/clients_handler.cpp
     src/api/tasks_handler.cpp
     src/api/finance_handler.cpp
     src/api/users_handler.cpp
-    src/models/user.cpp
-    src/models/client.cpp
-    src/models/task.cpp
-    src/models/finance.cpp
-    src/utils/slugify.cpp
-    src/utils/audit.cpp
-    src/utils/response.cpp
+    src/cache/redis_cache.cpp
+    src/notifications/websocket.cpp
+    src/email/smtp_client.cpp
+    src/notifications/telegram.cpp
+    src/metrics/prometheus.cpp
+    src/export/csv_exporter.cpp
 )
 
 add_executable(crm_backend ${SOURCES})
@@ -76,7 +58,10 @@ target_link_libraries(crm_backend PRIVATE
     pthread
 )
 
-# ─── Tests ───────────────────────────────────────────────────────────────────
+if(hiredis_FOUND)
+    target_link_libraries(crm_backend PRIVATE hiredis::hiredis)
+    target_compile_definitions(crm_backend PRIVATE HAVE_REDIS=1)
+endif()
 
 enable_testing()
 add_subdirectory(tests)
