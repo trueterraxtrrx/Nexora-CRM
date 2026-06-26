@@ -164,7 +164,7 @@ function AuthLayout({ title, children }: { title: string; children: React.ReactN
           <div className="w-9 h-9 rounded-xl bg-indigo-600 flex items-center justify-center">
             <Building2 size={18} className="text-white" />
           </div>
-          <span className="text-white font-semibold text-lg tracking-tight">CRM SaaS</span>
+          <span className="text-white font-semibold text-lg tracking-tight">Nexora</span>
         </div>
 
         {/* Карточка */}

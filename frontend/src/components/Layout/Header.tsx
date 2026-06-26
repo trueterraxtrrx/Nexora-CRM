@@ -7,13 +7,14 @@ const PAGE_TITLES: Record<string, string> = {
   '/clients':   'Клиенты',
   '/tasks':     'Задачи',
   '/finance':   'Финансы',
+  '/admin':     'Админка',
   '/settings':  'Настройки',
 }
 
 export function Header() {
   const { user } = useAuth()
   const location = useLocation()
-  const title = PAGE_TITLES[location.pathname] ?? 'CRM'
+  const title = PAGE_TITLES[location.pathname] ?? 'Nexora'
 
   return (
     <header className="h-14 border-b border-slate-800 bg-[#0D1117] flex items-center px-6 gap-4 sticky top-0 z-10">

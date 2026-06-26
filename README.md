@@ -1,4 +1,4 @@
-# CRM SaaS — C++ Backend + React Frontend
+# Nexora — C++ Backend + React Frontend
 
 <div align="center">
 
@@ -50,8 +50,8 @@
 ### Docker (1 команда)
 
 ```bash
-git clone https://github.com/yourname/crm-saas-cpp
-cd crm-saas-cpp
+git clone https://github.com/terraicy/Nexora-CRM
+cd Nexora-CRM
 
 # Копируй .env и поменяй JWT_SECRET
 cp backend/.env.example backend/.env
@@ -157,7 +157,7 @@ GET    /api/health                               - Health check
 ## 📁 Структура проекта
 
 ```
-crm-saas-cpp/
+Nexora-CRM/
 ├── backend/
 │   ├── include/
 │   │   ├── core/             (config, database, jwt, password, middleware, rate_limiter)
@@ -247,8 +247,8 @@ cd frontend && npm run dev
 curl -fsSL https://get.docker.com | sh
 
 # 2. Клонируй и настрой
-git clone https://github.com/yourname/crm-saas-cpp
-cd crm-saas-cpp
+git clone https://github.com/terraicy/Nexora-CRM
+cd Nexora-CRM
 cp backend/.env.example backend/.env
 nano backend/.env  # поменяй JWT_SECRET и DB_PASSWORD
 
@@ -294,4 +294,3 @@ Issues и PR welcome! Следуй [CONTRIBUTING](CONTRIBUTING.md).
 - React SPA frontend
 - Docker Compose
 - GitHub Actions CI/CD
-
