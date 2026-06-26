@@ -8,6 +8,7 @@ import Dashboard from './pages/Dashboard'
 import Clients from './pages/Clients'
 import Tasks from './pages/Tasks'
 import Finance from './pages/Finance'
+import Admin from './pages/Admin'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -58,6 +59,7 @@ export default function App() {
               <Route path="/clients"   element={<Clients />}   />
               <Route path="/tasks"     element={<Tasks />}     />
               <Route path="/finance"   element={<Finance />}   />
+              <Route path="/admin"     element={<Admin />}     />
             </Route>
             <Route path="*" element={<Navigate to="/dashboard" replace />} />
           </Routes>

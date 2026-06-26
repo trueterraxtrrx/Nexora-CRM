@@ -1,4 +1,4 @@
-# Гайд по развёртыванию и разработке CRM SaaS (C++ Backend)
+# Гайд по развёртыванию и разработке Nexora (C++ Backend)
 
 ## Содержание
 
@@ -114,8 +114,8 @@ SQL
 
 ```bash
 # 1. Клонируй репозиторий
-git clone https://github.com/yourname/crm-saas-cpp
-cd crm-saas-cpp
+git clone https://github.com/terraicy/Nexora-CRM
+cd Nexora-CRM
 
 # 2. Создай .env (ОБЯЗАТЕЛЬНО поменяй JWT_SECRET!)
 cp backend/.env.example backend/.env
@@ -398,8 +398,8 @@ sudo usermod -aG docker $USER
 newgrp docker
 
 # 2. Клонируй проект
-git clone https://github.com/yourname/crm-saas-cpp
-cd crm-saas-cpp
+git clone https://github.com/terraicy/Nexora-CRM
+cd Nexora-CRM
 
 # 3. Настрой переменные
 cp backend/.env.example backend/.env
@@ -676,4 +676,3 @@ docker-compose logs backend | grep "Email"
 curl http://localhost:8000/api/health  # сделай первый запрос
 curl http://localhost:8000/metrics     # теперь будут данные
 ```
-

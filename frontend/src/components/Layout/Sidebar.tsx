@@ -1,7 +1,7 @@
 import { NavLink } from 'react-router-dom'
 import {
   LayoutDashboard, Users, CheckSquare, DollarSign,
-  Settings, LogOut, Building2, ChevronRight,
+  Settings, LogOut, Building2, ChevronRight, ShieldCheck,
 } from 'lucide-react'
 import { useAuth } from '../../hooks/useAuth'
 import clsx from 'clsx'
@@ -11,6 +11,7 @@ const NAV_ITEMS = [
   { to: '/clients',    icon: Users,            label: 'Клиенты'  },
   { to: '/tasks',      icon: CheckSquare,      label: 'Задачи'   },
   { to: '/finance',    icon: DollarSign,       label: 'Финансы'  },
+  { to: '/admin',      icon: ShieldCheck,      label: 'Админка'  },
   { to: '/settings',   icon: Settings,         label: 'Настройки'},
 ]
 
@@ -31,7 +32,7 @@ export function Sidebar() {
           <div className="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center">
             <Building2 size={16} className="text-white" />
           </div>
-          <span className="font-semibold text-white tracking-tight">CRM SaaS</span>
+          <span className="font-semibold text-white tracking-tight">Nexora</span>
         </div>
       </div>
 
