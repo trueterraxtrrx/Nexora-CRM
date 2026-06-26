@@ -1,42 +1,45 @@
 import { NavLink } from 'react-router-dom'
 import {
-  LayoutDashboard, Users, CheckSquare, DollarSign,
-  Settings, LogOut, Building2, ChevronRight, ShieldCheck,
+  Building2,
+  CheckSquare,
+  ChevronRight,
+  DollarSign,
+  LayoutDashboard,
+  LogOut,
+  Settings,
+  Users,
 } from 'lucide-react'
-import { useAuth } from '../../hooks/useAuth'
 import clsx from 'clsx'
+import { useAuth } from '../../hooks/useAuth'
 
 const NAV_ITEMS = [
-  { to: '/dashboard',  icon: LayoutDashboard, label: 'Дашборд'  },
-  { to: '/clients',    icon: Users,            label: 'Клиенты'  },
-  { to: '/tasks',      icon: CheckSquare,      label: 'Задачи'   },
-  { to: '/finance',    icon: DollarSign,       label: 'Финансы'  },
-  { to: '/admin',      icon: ShieldCheck,      label: 'Админка'  },
-  { to: '/settings',   icon: Settings,         label: 'Настройки'},
+  { to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
+  { to: '/clients', icon: Users, label: 'Clients' },
+  { to: '/tasks', icon: CheckSquare, label: 'Tasks' },
+  { to: '/finance', icon: DollarSign, label: 'Finance' },
+  { to: '/settings', icon: Settings, label: 'Settings' },
 ]
 
-const PLAN_COLORS: Record<string, string> = {
-  free:       'bg-slate-700 text-slate-300',
-  pro:        'bg-indigo-900 text-indigo-300',
-  enterprise: 'bg-amber-900 text-amber-300',
+const ROLE_COLORS: Record<string, string> = {
+  admin: 'bg-teal-950 text-signal',
+  manager: 'bg-slate-800 text-slate-300',
+  user: 'bg-amber-950 text-warn',
 }
 
 export function Sidebar() {
   const { user, logout } = useAuth()
 
   return (
-    <aside className="w-60 flex-shrink-0 bg-[#0D1117] border-r border-slate-800 flex flex-col h-screen sticky top-0">
-      {/* Логотип */}
-      <div className="px-5 py-5 border-b border-slate-800">
+    <aside className="w-60 flex-shrink-0 bg-surface border-r border-line flex flex-col h-screen sticky top-0">
+      <div className="px-5 py-5 border-b border-line">
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center">
-            <Building2 size={16} className="text-white" />
+          <div className="w-8 h-8 rounded bg-panel flex items-center justify-center">
+            <Building2 size={16} className="text-signal" />
           </div>
-          <span className="font-semibold text-white tracking-tight">Nexora</span>
+          <span className="font-semibold text-white tracking-tight">Nexora CRM</span>
         </div>
       </div>
 
-      {/* Навигация */}
       <nav className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">
         {NAV_ITEMS.map(({ to, icon: Icon, label }) => (
           <NavLink
@@ -46,8 +49,8 @@ export function Sidebar() {
               clsx(
                 'flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors group',
                 isActive
-                  ? 'bg-indigo-600 text-white'
-                  : 'text-slate-400 hover:text-slate-100 hover:bg-slate-800'
+                  ? 'bg-panel text-white'
+                  : 'text-slate-300 hover:text-white hover:bg-panel/70'
               )
             }
           >
@@ -62,22 +65,20 @@ export function Sidebar() {
         ))}
       </nav>
 
-      {/* Профиль пользователя */}
-      <div className="border-t border-slate-800 p-3">
+      <div className="border-t border-line p-3">
         <div className="flex items-center gap-3 px-2 py-2">
-          {/* Аватар — инициалы */}
-          <div className="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center flex-shrink-0">
+          <div className="w-8 h-8 rounded-full bg-signal flex items-center justify-center flex-shrink-0">
             <span className="text-white text-xs font-semibold">
               {user?.full_name?.charAt(0)?.toUpperCase() ?? user?.email?.charAt(0)?.toUpperCase()}
             </span>
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-sm text-slate-200 font-medium truncate">
+            <p className="text-sm text-white font-medium truncate">
               {user?.full_name ?? user?.email}
             </p>
             <span className={clsx(
               'text-[10px] font-medium px-1.5 py-0.5 rounded uppercase tracking-wide',
-              PLAN_COLORS['free'] // TODO: взять из company
+              ROLE_COLORS[user?.role ?? 'user']
             )}>
               {user?.role}
             </span>
@@ -86,10 +87,10 @@ export function Sidebar() {
 
         <button
           onClick={logout}
-          className="mt-1 w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-slate-400 hover:text-red-400 hover:bg-slate-800 transition-colors"
+          className="mt-1 w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-slate-300 hover:text-danger hover:bg-panel transition-colors"
         >
           <LogOut size={16} />
-          Выйти
+          Reset demo session
         </button>
       </div>
     </aside>
