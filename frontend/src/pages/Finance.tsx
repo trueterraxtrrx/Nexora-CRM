@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { Plus, TrendingUp, TrendingDown, DollarSign, Trash2 } from 'lucide-react'
+import { Plus, TrendingUp, TrendingDown, DollarSign, Trash2, Percent, CalendarClock } from 'lucide-react'
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid,
   Tooltip, ResponsiveContainer, Legend,
@@ -75,6 +75,11 @@ export default function Finance() {
     Расходы: m.expense,
     Прибыль: m.income - m.expense,
   })) ?? []
+  const elapsedMonths = Math.max(1, new Date().getMonth() + 1)
+  const projectedProfit = report ? Math.round((report.profit / elapsedMonths) * 12) : null
+  const margin = report && report.total_income > 0
+    ? Math.round((report.profit / report.total_income) * 100)
+    : null
 
   return (
     <div className="p-6 space-y-5">
@@ -86,7 +91,7 @@ export default function Finance() {
       </div>
 
       {/* Стат-карточки */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-4">
         <StatCard
           label="Доходы за год"
           value={report ? `${report.total_income.toLocaleString('ru')} ₽` : '—'}
@@ -103,6 +108,18 @@ export default function Finance() {
           value={report ? `${report.profit.toLocaleString('ru')} ₽` : '—'}
           deltaPositive={report ? report.profit >= 0 : undefined}
           icon={<DollarSign size={16} />}
+        />
+        <StatCard
+          label="Прогноз года"
+          value={projectedProfit !== null ? `${projectedProfit.toLocaleString('ru')} ₽` : '—'}
+          deltaPositive={projectedProfit !== null ? projectedProfit >= 0 : undefined}
+          icon={<CalendarClock size={16} />}
+        />
+        <StatCard
+          label="Маржинальность"
+          value={margin !== null ? `${margin}%` : '—'}
+          deltaPositive={margin !== null ? margin >= 0 : undefined}
+          icon={<Percent size={16} />}
         />
       </div>
 
