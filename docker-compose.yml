@@ -6,7 +6,7 @@ services:
     restart: unless-stopped
     environment:
       POSTGRES_USER: crm_user
-      POSTGRES_PASSWORD: crm_pass
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-demo_only_change_me}
       POSTGRES_DB: crm_db
     volumes:
       - postgres_data:/var/lib/postgresql/data
@@ -15,21 +15,6 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
-    networks:
-      - crm-net
-
-  redis:
-    image: redis:7-alpine
-    restart: unless-stopped
-    ports:
-      - "6379:6379"
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 5s
-      timeout: 3s
-      retries: 5
-    networks:
-      - crm-net
 
   backend:
     build:
@@ -41,35 +26,20 @@ services:
       DB_PORT: 5432
       DB_NAME: crm_db
       DB_USER: crm_user
-      DB_PASSWORD: crm_pass
+      DB_PASSWORD: ${DB_PASSWORD:-demo_only_change_me}
       DB_POOL_SIZE: 10
-      REDIS_HOST: redis
-      REDIS_PORT: 6379
-      JWT_SECRET: CHANGE_ME_IN_PRODUCTION_VERY_LONG_SECRET_KEY
+      JWT_SECRET: ${JWT_SECRET:-demo_only_change_me_before_private_deploy}
       JWT_EXPIRY_HOURS: 24
       PORT: 8000
       THREADS: 4
       DEBUG: "false"
       ALLOWED_ORIGINS: "http://localhost,http://localhost:5173"
-      SMTP_HOST: "smtp.gmail.com"
-      SMTP_PORT: "587"
-      SMTP_USER: ""
-      SMTP_PASSWORD: ""
-      TELEGRAM_BOT_TOKEN: ""
+      DEMO_MODE: "true"
     depends_on:
       db:
         condition: service_healthy
-      redis:
-        condition: service_healthy
     ports:
       - "8000:8000"
-    networks:
-      - crm-net
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/api/health"]
-      interval: 10s
-      timeout: 3s
-      retries: 3
 
   frontend:
     build:
@@ -78,19 +48,10 @@ services:
     restart: unless-stopped
     ports:
       - "80:80"
+    environment:
+      VITE_DEMO_MODE: "true"
     depends_on:
       - backend
-    networks:
-      - crm-net
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost"]
-      interval: 10s
-      timeout: 3s
-      retries: 3
 
 volumes:
   postgres_data:
-
-networks:
-  crm-net:
-    driver: bridge

@@ -1,6 +1,7 @@
 import { Bell, Search } from 'lucide-react'
 import { useLocation } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
+const DEMO_MODE = import.meta.env.VITE_DEMO_MODE === 'true'
 
 const PAGE_TITLES: Record<string, string> = {
   '/dashboard': 'Dashboard',
@@ -31,6 +32,7 @@ export function Header() {
       </div>
 
       <div className="flex items-center gap-2 ml-auto">
+        {DEMO_MODE && <span className="rounded-md border border-signal/40 bg-panel px-2 py-1 text-xs font-semibold text-signal">Demo Mode</span>}
         <button
           className="relative w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-white hover:bg-panel transition-colors"
           title="Notifications"

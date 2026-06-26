@@ -10,7 +10,7 @@ Config Config::load() {
     cfg.db_port      = get_env("DB_PORT", "5432");
     cfg.db_name      = get_env("DB_NAME", "crm_db");
     cfg.db_user      = get_env("DB_USER", "crm_user");
-    cfg.db_password  = get_env("DB_PASSWORD", "crm_pass");
+    cfg.db_password  = get_env("DB_PASSWORD", "demo_only_change_me");
     cfg.db_pool_size = get_env_int("DB_POOL_SIZE", 10);
 
     cfg.jwt_secret       = require_env("JWT_SECRET");

@@ -6,6 +6,21 @@ import { useNavigate } from 'react-router-dom'
 import { authApi } from '../api/client'
 import type { User, LoginCredentials, RegisterData } from '../types'
 
+const DEMO_MODE = import.meta.env.VITE_DEMO_MODE === 'true'
+const demoUser: User = {
+  id: 1,
+  company_id: 1,
+  email: 'demo@krynex.local',
+  full_name: 'KRYNEX Demo',
+  role: 'admin',
+  is_active: true,
+  avatar_url: null,
+  notify_email: true,
+  telegram_chat_id: null,
+  created_at: new Date(0).toISOString(),
+  last_login: null,
+}
+
 // ─────────────────────────────────────────────
 // Context
 // ─────────────────────────────────────────────
@@ -22,20 +37,6 @@ interface AuthContextValue {
 
 const AuthContext = createContext<AuthContextValue | null>(null)
 
-const DEMO_ADMIN: User = {
-  id: 1,
-  company_id: 1,
-  email: 'admin@nexora.local',
-  full_name: 'Nexora Admin',
-  role: 'admin',
-  is_active: true,
-  avatar_url: null,
-  notify_email: true,
-  telegram_chat_id: null,
-  created_at: new Date().toISOString(),
-  last_login: null,
-}
-
 // ─────────────────────────────────────────────
 // Provider
 // ─────────────────────────────────────────────
@@ -47,12 +48,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // Восстанавливаем сессию при загрузке
   useEffect(() => {
-    if (localStorage.getItem('demo_admin') === 'true') {
-      setUser(DEMO_ADMIN)
+    if (DEMO_MODE) {
+      localStorage.setItem('access_token', 'demo-token')
+      setUser(demoUser)
       setIsLoading(false)
       return
     }
-
     const token = localStorage.getItem('access_token')
     if (!token) {
       setIsLoading(false)
@@ -65,32 +66,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       .finally(() => setIsLoading(false))
   }, [])
 
-  const enterDemoAdmin = useCallback(() => {
-    localStorage.setItem('demo_admin', 'true')
-    localStorage.setItem('access_token', 'demo-admin-token')
-    setUser(DEMO_ADMIN)
-    navigate('/admin')
-  }, [navigate])
-
   const login = useCallback(async (credentials: LoginCredentials) => {
-    try {
-      const tokens = await authApi.login(credentials)
-      localStorage.setItem('access_token', tokens.access_token)
-      localStorage.removeItem('demo_admin')
-      const me = await authApi.me()
-      setUser(me)
+    if (DEMO_MODE) {
+      localStorage.setItem('access_token', 'demo-token')
+      setUser({ ...demoUser, email: credentials.email || demoUser.email })
       navigate('/dashboard')
-    } catch (error) {
-      if (
-        credentials.email === DEMO_ADMIN.email &&
-        credentials.password === 'NexoraAdmin2026!'
-      ) {
-        enterDemoAdmin()
-        return
-      }
-      throw error
+      return
     }
-  }, [enterDemoAdmin, navigate])
+    const tokens = await authApi.login(credentials)
+    localStorage.setItem('access_token', tokens.access_token)
+    const me = await authApi.me()
+    setUser(me)
+    navigate('/dashboard')
+  }, [navigate])
 
   const register = useCallback(async (data: RegisterData) => {
     await authApi.register(data)
@@ -98,11 +86,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await login({ email: data.email, password: data.password })
   }, [login])
 
+  const enterDemoAdmin = useCallback(() => {
+    localStorage.setItem('access_token', 'demo-token')
+    setUser(demoUser)
+    navigate('/dashboard')
+  }, [navigate])
+
   const logout = useCallback(() => {
     localStorage.removeItem('access_token')
-    localStorage.removeItem('demo_admin')
-    setUser(null)
-    navigate('/login')
+    setUser(DEMO_MODE ? demoUser : null)
+    navigate(DEMO_MODE ? '/dashboard' : '/login')
   }, [navigate])
 
   return (
