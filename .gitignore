@@ -39,5 +39,6 @@ coverage/
 # Logs
 *.log
 logs/
+docs/
 
 # Nexora v2

@@ -27,15 +27,11 @@ The frontend is a React/Vite application. The backend is a C++ Crow service with
 
 ## Screenshots
 
-Expected screenshots live in `docs/screenshots/`:
+![Nexora CRM dashboard](assets/screenshots/dashboard.png)
 
-- `dashboard.png`
-- `list-view.png`
-- `detail-view.png`
-- `settings.png`
-- `api-docs.png`
-
-See `docs/screenshots/README.md` for capture instructions.
+| List view | Detail view | Settings |
+| --- | --- | --- |
+| ![Nexora CRM list view](assets/screenshots/list-view.png) | ![Nexora CRM detail view](assets/screenshots/detail-view.png) | ![Nexora CRM settings](assets/screenshots/settings.png) |
 
 ## Quick Start
 
