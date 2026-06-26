@@ -18,7 +18,7 @@ const loginSchema = z.object({
 type LoginForm = z.infer<typeof loginSchema>
 
 export function LoginPage() {
-  const { login } = useAuth()
+  const { login, enterDemoAdmin } = useAuth()
   const [serverError, setServerError] = useState('')
 
   const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<LoginForm>({
@@ -60,6 +60,14 @@ export function LoginPage() {
 
         <Button type="submit" className="w-full mt-2" isLoading={isSubmitting}>
           Войти
+        </Button>
+        <Button
+          type="button"
+          variant="secondary"
+          className="w-full"
+          onClick={enterDemoAdmin}
+        >
+          Войти как админ
         </Button>
 
         <p className="text-center text-sm text-slate-500">

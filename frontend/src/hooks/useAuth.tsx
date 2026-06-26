@@ -16,10 +16,25 @@ interface AuthContextValue {
   isAuthenticated: boolean
   login: (credentials: LoginCredentials) => Promise<void>
   register: (data: RegisterData) => Promise<void>
+  enterDemoAdmin: () => void
   logout: () => void
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null)
+
+const DEMO_ADMIN: User = {
+  id: 1,
+  company_id: 1,
+  email: 'admin@nexora.local',
+  full_name: 'Nexora Admin',
+  role: 'admin',
+  is_active: true,
+  avatar_url: null,
+  notify_email: true,
+  telegram_chat_id: null,
+  created_at: new Date().toISOString(),
+  last_login: null,
+}
 
 // ─────────────────────────────────────────────
 // Provider
@@ -32,6 +47,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // Восстанавливаем сессию при загрузке
   useEffect(() => {
+    if (localStorage.getItem('demo_admin') === 'true') {
+      setUser(DEMO_ADMIN)
+      setIsLoading(false)
+      return
+    }
+
     const token = localStorage.getItem('access_token')
     if (!token) {
       setIsLoading(false)
@@ -44,13 +65,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       .finally(() => setIsLoading(false))
   }, [])
 
-  const login = useCallback(async (credentials: LoginCredentials) => {
-    const tokens = await authApi.login(credentials)
-    localStorage.setItem('access_token', tokens.access_token)
-    const me = await authApi.me()
-    setUser(me)
-    navigate('/dashboard')
+  const enterDemoAdmin = useCallback(() => {
+    localStorage.setItem('demo_admin', 'true')
+    localStorage.setItem('access_token', 'demo-admin-token')
+    setUser(DEMO_ADMIN)
+    navigate('/admin')
   }, [navigate])
+
+  const login = useCallback(async (credentials: LoginCredentials) => {
+    try {
+      const tokens = await authApi.login(credentials)
+      localStorage.setItem('access_token', tokens.access_token)
+      localStorage.removeItem('demo_admin')
+      const me = await authApi.me()
+      setUser(me)
+      navigate('/dashboard')
+    } catch (error) {
+      if (
+        credentials.email === DEMO_ADMIN.email &&
+        credentials.password === 'NexoraAdmin2026!'
+      ) {
+        enterDemoAdmin()
+        return
+      }
+      throw error
+    }
+  }, [enterDemoAdmin, navigate])
 
   const register = useCallback(async (data: RegisterData) => {
     await authApi.register(data)
@@ -60,6 +100,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = useCallback(() => {
     localStorage.removeItem('access_token')
+    localStorage.removeItem('demo_admin')
     setUser(null)
     navigate('/login')
   }, [navigate])
@@ -72,6 +113,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         isAuthenticated: !!user,
         login,
         register,
+        enterDemoAdmin,
         logout,
       }}
     >
