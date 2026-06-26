@@ -3,10 +3,10 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { Plus, Clock, AlertTriangle } from 'lucide-react'
+import { Plus, Clock, AlertTriangle, Filter } from 'lucide-react'
 import { tasksApi } from '../api/client'
 import { Button, Badge, Modal, Input } from '../components/ui'
-import type { Task, TaskStatus } from '../types'
+import type { Task, TaskPriority, TaskStatus } from '../types'
 import { format } from 'date-fns'
 import clsx from 'clsx'
 
@@ -106,11 +106,17 @@ function TaskCard({ task, onStatusChange }: {
 
 export default function Tasks() {
   const [isModalOpen, setModal] = useState(false)
+  const [priorityFilter, setPriorityFilter] = useState<TaskPriority | ''>('')
+  const [overdueOnly, setOverdueOnly] = useState(false)
   const qc = useQueryClient()
 
   const { data: tasks = [], isLoading } = useQuery({
-    queryKey: ['tasks'],
-    queryFn: () => tasksApi.list({ limit: 200 }),
+    queryKey: ['tasks', priorityFilter, overdueOnly],
+    queryFn: () => tasksApi.list({
+      limit: 200,
+      priority: priorityFilter || undefined,
+      overdue: overdueOnly || undefined,
+    }),
   })
 
   const createTask = useMutation({
@@ -144,14 +150,42 @@ export default function Tasks() {
 
   return (
     <div className="p-6 space-y-5">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-3 flex-wrap">
         <div>
           <h2 className="text-slate-100 font-semibold text-xl">Задачи</h2>
           <p className="text-slate-500 text-sm mt-0.5">{tasks.length} задач всего</p>
         </div>
-        <Button leftIcon={<Plus size={14} />} onClick={() => setModal(true)}>
-          Новая задача
-        </Button>
+        <div className="flex items-center gap-2 flex-wrap">
+          <div className="flex items-center gap-2 bg-slate-900 border border-slate-800 rounded-lg px-3 py-2">
+            <Filter size={14} className="text-slate-500" />
+            <select
+              value={priorityFilter}
+              onChange={e => setPriorityFilter(e.target.value as TaskPriority | '')}
+              className="bg-transparent text-xs text-slate-300 focus:outline-none"
+            >
+              <option value="">Все приоритеты</option>
+              <option value="urgent">Срочно</option>
+              <option value="high">Высокий</option>
+              <option value="medium">Средний</option>
+              <option value="low">Низкий</option>
+            </select>
+          </div>
+          <button
+            type="button"
+            onClick={() => setOverdueOnly(value => !value)}
+            className={clsx(
+              'px-3 py-2 rounded-lg text-xs font-medium transition-colors border',
+              overdueOnly
+                ? 'bg-red-950/70 border-red-800 text-red-300'
+                : 'bg-slate-900 border-slate-800 text-slate-400 hover:text-slate-200'
+            )}
+          >
+            Только просроченные
+          </button>
+          <Button leftIcon={<Plus size={14} />} onClick={() => setModal(true)}>
+            Новая задача
+          </Button>
+        </div>
       </div>
 
       {isLoading ? (
