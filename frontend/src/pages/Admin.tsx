@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -18,6 +19,35 @@ const schema = z.object({
 
 type FormData = z.infer<typeof schema>
 
+const DEMO_USERS: User[] = [
+  {
+    id: 1,
+    company_id: 1,
+    email: 'admin@nexora.local',
+    full_name: 'Nexora Admin',
+    role: 'admin',
+    is_active: true,
+    avatar_url: null,
+    notify_email: true,
+    telegram_chat_id: null,
+    created_at: new Date().toISOString(),
+    last_login: new Date().toISOString(),
+  },
+  {
+    id: 2,
+    company_id: 1,
+    email: 'manager@nexora.local',
+    full_name: 'Nexora Manager',
+    role: 'manager',
+    is_active: true,
+    avatar_url: null,
+    notify_email: true,
+    telegram_chat_id: null,
+    created_at: new Date().toISOString(),
+    last_login: null,
+  },
+]
+
 const ROLE_BADGE: Record<UserRole, 'purple' | 'info' | 'default'> = {
   admin: 'purple',
   manager: 'info',
@@ -34,12 +64,15 @@ export default function Admin() {
   const { user } = useAuth()
   const qc = useQueryClient()
   const isAdmin = user?.role === 'admin'
+  const demoMode = localStorage.getItem('demo_admin') === 'true'
+  const [demoUsers, setDemoUsers] = useState<User[]>(DEMO_USERS)
 
-  const { data: users = [], isLoading } = useQuery({
+  const { data: apiUsers = [], isLoading } = useQuery({
     queryKey: ['users'],
     queryFn: usersApi.list,
-    enabled: isAdmin,
+    enabled: isAdmin && !demoMode,
   })
+  const users = demoMode ? demoUsers : apiUsers
 
   const createUser = useMutation({
     mutationFn: usersApi.create,
@@ -63,8 +96,51 @@ export default function Admin() {
   })
 
   const onSubmit = async (data: FormData) => {
+    if (demoMode) {
+      setDemoUsers(current => [
+        ...current,
+        {
+          id: Math.max(...current.map(member => member.id)) + 1,
+          company_id: 1,
+          email: data.email,
+          full_name: data.full_name,
+          role: data.role,
+          is_active: true,
+          avatar_url: null,
+          notify_email: true,
+          telegram_chat_id: null,
+          created_at: new Date().toISOString(),
+          last_login: null,
+        },
+      ])
+      reset({ role: 'user', email: '', password: '', full_name: '' })
+      return
+    }
+
     await createUser.mutateAsync(data)
     reset({ role: 'user', email: '', password: '', full_name: '' })
+  }
+
+  const handleRoleChange = (id: number, role: UserRole) => {
+    if (demoMode) {
+      setDemoUsers(current => current.map(member =>
+        member.id === id ? { ...member, role } : member
+      ))
+      return
+    }
+
+    updateUser.mutate({ id, role })
+  }
+
+  const handleDeactivate = (id: number) => {
+    if (demoMode) {
+      setDemoUsers(current => current.map(member =>
+        member.id === id ? { ...member, is_active: false } : member
+      ))
+      return
+    }
+
+    deactivateUser.mutate(id)
   }
 
   if (!isAdmin) {
@@ -167,7 +243,7 @@ export default function Admin() {
                         <select
                           value={member.role}
                           disabled={member.id === user?.id || updateUser.isPending}
-                          onChange={e => updateUser.mutate({ id: member.id, role: e.target.value as UserRole })}
+                          onChange={e => handleRoleChange(member.id, e.target.value as UserRole)}
                           className="bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-slate-300 focus:outline-none disabled:opacity-60"
                         >
                           <option value="user">Пользователь</option>
@@ -189,7 +265,7 @@ export default function Admin() {
                       <td className="px-5 py-3.5">
                         <button
                           disabled={member.id === user?.id || deactivateUser.isPending || !member.is_active}
-                          onClick={() => deactivateUser.mutate(member.id)}
+                          onClick={() => handleDeactivate(member.id)}
                           className="text-slate-600 hover:text-red-400 transition-colors disabled:opacity-40 disabled:hover:text-slate-600"
                           title="Отключить пользователя"
                         >
