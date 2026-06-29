@@ -66,3 +66,4 @@ export function useAddInteraction(clientId: number) {
       qc.invalidateQueries({ queryKey: [QUERY_KEY, clientId, 'interactions'] }),
   })
 }
+// Project version: Nexora CRM V2.3

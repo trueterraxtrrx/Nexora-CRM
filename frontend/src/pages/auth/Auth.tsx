@@ -184,3 +184,4 @@ function AuthLayout({ title, children }: { title: string; children: React.ReactN
     </div>
   )
 }
+// Project version: Nexora CRM V2.3

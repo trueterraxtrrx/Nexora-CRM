@@ -26,3 +26,4 @@ void WebSocketManager::broadcast(int company_id, const nlohmann::json& msg) {
 }
 
 } // namespace crm::notifications
+// Project version: Nexora CRM V2.3

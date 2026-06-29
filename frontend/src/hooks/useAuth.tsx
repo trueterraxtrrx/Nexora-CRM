@@ -124,3 +124,4 @@ export function useAuth(): AuthContextValue {
   if (!ctx) throw new Error('useAuth must be used inside AuthProvider')
   return ctx
 }
+// Project version: Nexora CRM V2.3

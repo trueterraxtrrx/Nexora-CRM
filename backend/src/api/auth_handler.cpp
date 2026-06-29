@@ -179,3 +179,4 @@ void register_auth_routes(AppType& app) {
 }
 
 } // namespace crm::api
+// Project version: Nexora CRM V2.3

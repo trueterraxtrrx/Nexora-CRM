@@ -5,3 +5,4 @@
 namespace crm::api {
 void register_tasks_routes(crm::core::AppType& app);
 }
+// Project version: Nexora CRM V2.3

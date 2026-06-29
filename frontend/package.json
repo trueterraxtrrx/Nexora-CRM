@@ -1,7 +1,7 @@
 {
   "name": "nexora-frontend",
   "private": true,
-  "version": "2.2.0",
+  "version": "2.3.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -39,3 +39,4 @@
     "vite": "^5.3.0"
   }
 }
+

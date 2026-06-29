@@ -19,3 +19,4 @@ module.exports = {
     'react-hooks/set-state-in-effect': 'off',
   },
 }
+// Project version: Nexora CRM V2.3

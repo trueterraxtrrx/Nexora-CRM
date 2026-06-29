@@ -47,3 +47,4 @@ bool verify_password(const std::string& plain, const std::string& hash) {
 }
 
 } // namespace crm::core
+// Project version: Nexora CRM V2.3

@@ -69,3 +69,4 @@ HEALTHCHECK --interval=10s --timeout=3s --retries=3 \
     CMD curl -f http://localhost:8000/api/health || exit 1
 
 CMD ["./crm_backend"]
+# Project version: Nexora CRM V2.3

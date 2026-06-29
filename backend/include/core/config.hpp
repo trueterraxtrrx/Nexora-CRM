@@ -68,3 +68,4 @@ inline bool get_env_bool(const char* name, bool fallback) {
 Config& get_config();
 
 } // namespace crm::core
+// Project version: Nexora CRM V2.3

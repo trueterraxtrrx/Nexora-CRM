@@ -25,3 +25,4 @@ private:
 };
 
 } // namespace crm::core
+// Project version: Nexora CRM V2.3

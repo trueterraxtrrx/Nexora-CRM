@@ -36,3 +36,4 @@ TEST(SlugifyTest, EmptyStringHandled) {
     EXPECT_EQ(slugify(""), "");
     EXPECT_EQ(slugify("!!!"), "");
 }
+// Project version: Nexora CRM V2.3

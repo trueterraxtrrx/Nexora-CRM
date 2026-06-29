@@ -36,3 +36,4 @@ TEST(PasswordTest, EmptyPasswordHandled) {
     EXPECT_TRUE(verify_password("", hash));
     EXPECT_FALSE(verify_password("not_empty", hash));
 }
+// Project version: Nexora CRM V2.3

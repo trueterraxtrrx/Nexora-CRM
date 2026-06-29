@@ -8,3 +8,4 @@ export default defineConfig({
     proxy: { '/api': { target: 'http://localhost:8000', changeOrigin: true } },
   },
 })
+// Project version: Nexora CRM V2.3

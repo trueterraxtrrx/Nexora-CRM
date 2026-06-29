@@ -267,3 +267,4 @@ export default function Finance() {
     </div>
   )
 }
+// Project version: Nexora CRM V2.3

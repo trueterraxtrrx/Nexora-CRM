@@ -59,6 +59,13 @@ Nexora 3.0 should move the product from a working CRM core to a polished operati
 - Finance run-rate forecast and margin indicators.
 - CI checks for frontend build and backend Docker build.
 
+## Public Demo Track
+
+- Keep demo mode isolated from production auth and persistence assumptions.
+- Expand safe CRM seed data for clients, tasks, finance, and dashboard views.
+- Add read-only hosted demo controls before enabling public review links.
+- Document the demo-to-production boundary in README and deployment notes.
+
 ## Suggested V3.0 Feature Order
 
 1. Client timeline and tags.
@@ -67,3 +74,4 @@ Nexora 3.0 should move the product from a working CRM core to a polished operati
 4. Audit viewer and permissions.
 5. Webhooks and API keys.
 6. E2E test pack and production checklist.
+<!-- Project version: Nexora CRM V2.3 -->

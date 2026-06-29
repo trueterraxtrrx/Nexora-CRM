@@ -49,3 +49,4 @@ TEST_F(JwtTest, DifferentRolesEncoded) {
         EXPECT_EQ(claims->role, role);
     }
 }
+// Project version: Nexora CRM V2.3
