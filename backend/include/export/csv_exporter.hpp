@@ -17,4 +17,4 @@ private:
 };
 
 } // namespace crm::export_service
-// Project version: Nexora CRM V2.3
+// Project version: Nexora CRM V2.4

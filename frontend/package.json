@@ -1,7 +1,7 @@
 {
   "name": "nexora-frontend",
   "private": true,
-  "version": "2.3.0",
+  "version": "2.4.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -39,4 +39,4 @@
     "vite": "^5.3.0"
   }
 }
-
+# Project version: Nexora CRM V2.4
