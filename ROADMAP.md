@@ -53,6 +53,12 @@ Nexora 3.0 should move the product from a working CRM core to a polished operati
 - End-to-end smoke tests for auth, clients, tasks, and finance.
 - Production deployment checklist with backup and restore flow.
 
+## Roadmap Progress In V2.4
+
+- Promoted the public demo track into a release checklist for hosted review.
+- Clarified Command Center prep around dashboard roles, quick actions, and safe demo data.
+- Kept client timeline and tags as the next implementation target after demo readiness.
+
 ## Already Started In V2.2
 
 - Task filters for priority and overdue work.
@@ -74,4 +80,4 @@ Nexora 3.0 should move the product from a working CRM core to a polished operati
 4. Audit viewer and permissions.
 5. Webhooks and API keys.
 6. E2E test pack and production checklist.
-<!-- Project version: Nexora CRM V2.3 -->
+<!-- Project version: Nexora CRM V2.4 -->

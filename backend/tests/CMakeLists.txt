@@ -34,4 +34,4 @@ target_sources(crm_tests PRIVATE
 
 include(GoogleTest)
 gtest_discover_tests(crm_tests)
-# Project version: Nexora CRM V2.3
+# Project version: Nexora CRM V2.4
