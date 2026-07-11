@@ -8,4 +8,4 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
     <App />
   </React.StrictMode>
 )
-// Project version: Nexora CRM V2.6
+// Project version: Nexora CRM V2.7

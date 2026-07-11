@@ -1,4 +1,4 @@
-# Nexora CRM V2.6
+# Nexora CRM V2.7
 
 Business CRM dashboard for clients, tasks and finance workflows in the KRYNEX Labs ecosystem.
 
@@ -89,4 +89,4 @@ Nexora CRM represents the business SaaS side of KRYNEX Labs next to SentinelX, T
 ## License
 
 MIT.
-<!-- Project version: Nexora CRM V2.6 -->
+<!-- Project version: Nexora CRM V2.7 -->

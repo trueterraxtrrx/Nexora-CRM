@@ -183,4 +183,4 @@ export default function Dashboard() {
     </div>
   )
 }
-// Project version: Nexora CRM V2.6
+// Project version: Nexora CRM V2.7

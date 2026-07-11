@@ -1,4 +1,4 @@
-# Nexora CRM V2.6 Deployment Notes
+# Nexora CRM V2.7 Deployment Notes
 
 This public version is prepared for local/demo hosting, not production operation.
 
@@ -31,4 +31,4 @@ docker compose up --build
 - Set `ALLOWED_ORIGINS` to the hosted frontend origin.
 - Replace `JWT_SECRET` for any private deployment.
 - Do not publish private CRM records or databases.
-<!-- Project version: Nexora CRM V2.6 -->
+<!-- Project version: Nexora CRM V2.7 -->

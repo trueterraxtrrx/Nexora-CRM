@@ -229,4 +229,4 @@ void register_finance_routes(AppType& app) {
 }
 
 } // namespace crm::api
-// Project version: Nexora CRM V2.6
+// Project version: Nexora CRM V2.7
