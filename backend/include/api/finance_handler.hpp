@@ -5,4 +5,4 @@
 namespace crm::api {
 void register_finance_routes(crm::core::AppType& app);
 }
-// Project version: Nexora CRM V2.6
+// Project version: Nexora CRM V2.7

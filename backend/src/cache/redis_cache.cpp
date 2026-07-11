@@ -94,4 +94,4 @@ std::optional<nlohmann::json> RedisCache::get_json(const std::string& key) {
 }
 
 } // namespace crm::cache
-// Project version: Nexora CRM V2.6
+// Project version: Nexora CRM V2.7

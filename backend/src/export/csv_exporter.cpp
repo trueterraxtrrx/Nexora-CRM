@@ -61,4 +61,4 @@ std::string CsvExporter::finance_to_csv(const std::vector<std::map<std::string, 
 }
 
 } // namespace crm::export_service
-// Project version: Nexora CRM V2.6
+// Project version: Nexora CRM V2.7
