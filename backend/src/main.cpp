@@ -54,7 +54,7 @@ int main() {
     // ── Health check ──────────────────────────────────────────────────────
     CROW_ROUTE(app, "/api/health")
     ([]() {
-        return crow::response(200, R"({"status":"ok","version":"2.4.0"})");
+        return crow::response(200, R"({"status":"ok","version":"2.5.0"})");
     });
 
     // 404 handler
@@ -77,4 +77,4 @@ int main() {
 
     return 0;
 }
-// Project version: Nexora CRM V2.4
+// Project version: Nexora CRM V2.5

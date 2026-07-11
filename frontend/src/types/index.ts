@@ -221,4 +221,4 @@ export interface PaginatedParams {
   skip?: number
   limit?: number
 }
-// Project version: Nexora CRM V2.4
+// Project version: Nexora CRM V2.5

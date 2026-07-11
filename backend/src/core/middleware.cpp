@@ -49,4 +49,4 @@ bool require_role(
 }
 
 } // namespace crm::core
-// Project version: Nexora CRM V2.4
+// Project version: Nexora CRM V2.5

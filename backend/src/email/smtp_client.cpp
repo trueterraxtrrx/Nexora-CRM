@@ -35,4 +35,4 @@ bool SmtpClient::send_async(const EmailMessage& msg) {
 }
 
 } // namespace crm::email
-// Project version: Nexora CRM V2.4
+// Project version: Nexora CRM V2.5
