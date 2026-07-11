@@ -231,4 +231,4 @@ export default function Clients() {
     </div>
   )
 }
-// Project version: Nexora CRM V2.5
+// Project version: Nexora CRM V2.6

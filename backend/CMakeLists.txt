@@ -73,4 +73,4 @@ endif()
 
 enable_testing()
 add_subdirectory(tests)
-# Project version: Nexora CRM V2.5
+# Project version: Nexora CRM V2.6
