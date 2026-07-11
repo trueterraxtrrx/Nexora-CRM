@@ -676,4 +676,4 @@ docker-compose logs backend | grep "Email"
 curl http://localhost:8000/api/health  # сделай первый запрос
 curl http://localhost:8000/metrics     # теперь будут данные
 ```
-<!-- Project version: Nexora CRM V2.4 -->
+<!-- Project version: Nexora CRM V2.5 -->
