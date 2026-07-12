@@ -38,3 +38,4 @@ bool SmtpClient::send_async(const EmailMessage& msg) {
 // Project version: Nexora CRM V2.7
 
 
+
