@@ -20,6 +20,7 @@ struct Config {
     std::string jwt_secret;
     int jwt_expiry_hours{};
 
+    std::string environment;
     int server_port{};
     int server_threads{};
     bool debug{};

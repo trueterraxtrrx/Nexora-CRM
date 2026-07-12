@@ -6,6 +6,8 @@
 #include "utils/slugify.hpp"
 #include <spdlog/spdlog.h>
 #include <nlohmann/json.hpp>
+#include <algorithm>
+#include <cctype>
 #include <utility>
 
 namespace crm::api {
@@ -13,6 +15,14 @@ namespace crm::api {
 using namespace crm::core;
 using namespace crm::utils;
 using json = nlohmann::json;
+
+static bool strong_password(const std::string& password) {
+    if (password.size() < 10 || password.size() > 128) return false;
+    auto has_upper = std::any_of(password.begin(), password.end(), [](unsigned char ch) { return std::isupper(ch); });
+    auto has_lower = std::any_of(password.begin(), password.end(), [](unsigned char ch) { return std::islower(ch); });
+    auto has_digit = std::any_of(password.begin(), password.end(), [](unsigned char ch) { return std::isdigit(ch); });
+    return has_upper && has_lower && has_digit;
+}
 
 void register_auth_routes(AppType& app) {
 
@@ -32,8 +42,8 @@ void register_auth_routes(AppType& app) {
         auto full_name    = (*body)["full_name"].get<std::string>();
         auto company_name = (*body)["company_name"].get<std::string>();
 
-        if (password.size() < 8)
-            return json_error(400, "Пароль должен быть не менее 8 символов");
+        if (!strong_password(password))
+            return json_error(400, "Password must be 10-128 characters and include uppercase, lowercase, and a number");
 
         try {
             return get_db().with_transaction<crow::response>([&](pqxx::work& txn) {

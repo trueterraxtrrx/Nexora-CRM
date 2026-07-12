@@ -79,10 +79,14 @@ std::string JwtService::base64url_decode(const std::string& input) const {
 
     std::string result;
     for (size_t i = 0; i < data.size(); i += 4) {
-        int v = (decode_table[(unsigned char)data[i]]   << 18) |
-                (decode_table[(unsigned char)data[i+1]] << 12) |
-                (decode_table[(unsigned char)data[i+2]] <<  6) |
-                (decode_table[(unsigned char)data[i+3]]);
+        int a = decode_table[static_cast<unsigned char>(data[i])];
+        int b = decode_table[static_cast<unsigned char>(data[i + 1])];
+        int c = data[i + 2] == '=' ? 0 : decode_table[static_cast<unsigned char>(data[i + 2])];
+        int d = data[i + 3] == '=' ? 0 : decode_table[static_cast<unsigned char>(data[i + 3])];
+        if (a < 0 || b < 0 || c < 0 || d < 0) {
+            return {};
+        }
+        int v = (a << 18) | (b << 12) | (c << 6) | d;
         result += static_cast<char>((v >> 16) & 0xFF);
         if (data[i+2] != '=') result += static_cast<char>((v >>  8) & 0xFF);
         if (data[i+3] != '=') result += static_cast<char>( v        & 0xFF);

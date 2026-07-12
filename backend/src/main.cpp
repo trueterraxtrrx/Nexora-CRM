@@ -2,6 +2,8 @@
 #include <spdlog/spdlog.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
 #include <fmt/format.h>
+#include <exception>
+#include <iostream>
 
 #include "core/config.hpp"
 #include "core/database.hpp"
@@ -13,7 +15,7 @@
 #include "api/finance_handler.hpp"
 #include "api/users_handler.hpp"
 
-int main() {
+int run_app() {
     // ── Logging ───────────────────────────────────────────────────────────
     auto logger = spdlog::stdout_color_mt("crm");
     spdlog::set_default_logger(logger);
@@ -76,5 +78,14 @@ int main() {
         .run();
 
     return 0;
+}
+
+int main() {
+    try {
+        return run_app();
+    } catch (const std::exception& exc) {
+        std::cerr << "Fatal startup error: " << exc.what() << "\n";
+        return 1;
+    }
 }
 // Project version: Nexora CRM V2.7

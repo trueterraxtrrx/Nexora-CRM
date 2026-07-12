@@ -1,14 +1,18 @@
 cmake_minimum_required(VERSION 3.20)
 project(crm_backend VERSION 2.2.0 LANGUAGES CXX)
 
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 if(CMAKE_BUILD_TYPE STREQUAL "Release")
     add_compile_options(-O3 -march=native -flto)
 endif()
 
-add_compile_options(-Wall -Wextra -Wpedantic -Wno-unused-parameter)
+if(MSVC)
+    add_compile_options(/W4 /permissive-)
+else()
+    add_compile_options(-Wall -Wextra -Wpedantic -Wno-unused-parameter)
+endif()
 
 # Dependencies
 find_package(Crow REQUIRED)
@@ -16,8 +20,13 @@ find_package(OpenSSL REQUIRED)
 find_package(nlohmann_json REQUIRED)
 find_package(spdlog REQUIRED)
 find_package(fmt REQUIRED)
+find_package(Threads REQUIRED)
 find_package(hiredis QUIET)
-find_library(BCRYPT_LIBRARY bcrypt crypt REQUIRED)
+if(WIN32)
+    set(BCRYPT_LIBRARY bcrypt)
+else()
+    find_library(BCRYPT_LIBRARY crypt REQUIRED)
+endif()
 find_path(PQXX_INCLUDE_DIR pqxx/pqxx REQUIRED)
 find_library(PQXX_LIBRARY pqxx REQUIRED)
 find_library(PQ_LIBRARY pq REQUIRED)
@@ -63,7 +72,7 @@ target_link_libraries(crm_backend PRIVATE
     spdlog::spdlog
     fmt::fmt
     ${BCRYPT_LIBRARY}
-    pthread
+    Threads::Threads
 )
 
 if(hiredis_FOUND)

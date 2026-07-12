@@ -4,7 +4,11 @@ if(NOT GTest_FOUND)
     return()
 endif()
 
-find_library(BCRYPT_LIBRARY bcrypt crypt REQUIRED)
+if(WIN32)
+    set(BCRYPT_LIBRARY bcrypt)
+else()
+    find_library(BCRYPT_LIBRARY crypt REQUIRED)
+endif()
 
 add_executable(crm_tests
     test_jwt.cpp
