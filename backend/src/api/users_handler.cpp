@@ -223,3 +223,4 @@ void register_users_routes(AppType& app) {
 
 } // namespace crm::api
 // Project version: Nexora CRM V2.7
+
