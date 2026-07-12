@@ -5,6 +5,8 @@
 #include "utils/response.hpp"
 #include <spdlog/spdlog.h>
 #include <nlohmann/json.hpp>
+#include <algorithm>
+#include <cctype>
 #include <fmt/format.h>
 #include <vector>
 
@@ -14,7 +16,16 @@ using namespace crm::core;
 using namespace crm::utils;
 using json = nlohmann::json;
 
-static json user_to_json(const pqxx::row& r) {
+static bool strong_password(const std::string& password) {
+    if (password.size() < 10 || password.size() > 128) return false;
+    auto has_upper = std::any_of(password.begin(), password.end(), [](unsigned char ch) { return std::isupper(ch); });
+    auto has_lower = std::any_of(password.begin(), password.end(), [](unsigned char ch) { return std::islower(ch); });
+    auto has_digit = std::any_of(password.begin(), password.end(), [](unsigned char ch) { return std::isdigit(ch); });
+    return has_upper && has_lower && has_digit;
+}
+
+template <typename Row>
+static json user_to_json(const Row& r) {
     return {
         {"id",               r["id"].as<int>()},
         {"company_id",       r["company_id"].as<int>()},
@@ -90,8 +101,8 @@ void register_users_routes(AppType& app) {
                 auto full_name = get_optional<std::string>(*body, "full_name");
                 auto role      = body->contains("role") ? (*body)["role"].get<std::string>() : "user";
 
-                if (password.size() < 8)
-                    return json_error(400, "Пароль должен быть не менее 8 символов");
+                if (!strong_password(password))
+                    return json_error(400, "Password must be 10-128 characters and include uppercase, lowercase, and a number");
 
                 // Уникальность email
                 auto existing = txn.exec_params(

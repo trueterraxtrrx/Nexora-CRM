@@ -16,7 +16,8 @@ using namespace crm::utils;
 using json = nlohmann::json;
 
 // ─── Helper: row → json ──────────────────────────────────────────────────────
-static json client_to_json(const pqxx::row& r) {
+template <typename Row>
+static json client_to_json(const Row& r) {
     return {
         {"id",           r["id"].as<int>()},
         {"company_id",   r["company_id"].as<int>()},

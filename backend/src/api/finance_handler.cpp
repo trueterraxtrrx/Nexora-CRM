@@ -15,7 +15,8 @@ using namespace crm::core;
 using namespace crm::utils;
 using json = nlohmann::json;
 
-static json finance_to_json(const pqxx::row& r) {
+template <typename Row>
+static json finance_to_json(const Row& r) {
     return {
         {"id",          r["id"].as<int>()},
         {"company_id",  r["company_id"].as<int>()},

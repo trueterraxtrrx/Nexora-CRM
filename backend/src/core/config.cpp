@@ -1,5 +1,6 @@
 #include "core/config.hpp"
 #include <spdlog/spdlog.h>
+#include <algorithm>
 
 namespace crm::core {
 
@@ -16,6 +17,7 @@ Config Config::load() {
     cfg.jwt_secret       = require_env("JWT_SECRET");
     cfg.jwt_expiry_hours = get_env_int("JWT_EXPIRY_HOURS", 24);
 
+    cfg.environment = get_env("ENVIRONMENT", "development");
     cfg.server_port    = get_env_int("PORT", 8000);
     cfg.server_threads = get_env_int("THREADS",
         static_cast<int>(std::thread::hardware_concurrency()));
@@ -36,6 +38,24 @@ Config Config::load() {
     cfg.smtp_password = get_env("SMTP_PASSWORD", "");
 
     cfg.telegram_bot_token = get_env("TELEGRAM_BOT_TOKEN", "");
+
+    const bool production_like = cfg.environment == "production" || cfg.environment == "prod";
+    if (production_like) {
+        if (cfg.debug) {
+            throw std::runtime_error("DEBUG must be disabled before production deployment");
+        }
+        if (cfg.jwt_secret == "demo_only_change_me_before_private_deploy" ||
+            cfg.jwt_secret == "change-me" ||
+            cfg.jwt_secret == "secret") {
+            throw std::runtime_error("JWT_SECRET must be replaced before production deployment");
+        }
+        if (cfg.db_password == "demo_only_change_me") {
+            throw std::runtime_error("DB_PASSWORD must be replaced before production deployment");
+        }
+        if (std::find(cfg.allowed_origins.begin(), cfg.allowed_origins.end(), "*") != cfg.allowed_origins.end()) {
+            throw std::runtime_error("Wildcard CORS origins are not allowed in production");
+        }
+    }
 
     spdlog::info("Config loaded: port={}, threads={}, debug={}",
         cfg.server_port, cfg.server_threads, cfg.debug);
