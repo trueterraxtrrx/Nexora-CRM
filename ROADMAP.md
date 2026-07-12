@@ -17,3 +17,4 @@ Business CRM dashboard for clients, tasks and finance workflows in the KRYNEX La
 - End-to-end smoke tests for auth, clients, tasks and finance.
 
 <!-- Project version: Nexora CRM V1.0 -->
+

@@ -123,3 +123,4 @@ All notable changes to this project will be documented in this file.
 - [ ] Database read replicas for horizontal scaling
 <!-- Project version: Nexora CRM V2.7 -->
 
+

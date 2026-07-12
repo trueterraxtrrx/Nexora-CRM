@@ -678,3 +678,4 @@ curl http://localhost:8000/metrics     # теперь будут данные
 ```
 <!-- Project version: Nexora CRM V2.7 -->
 
+
