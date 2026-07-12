@@ -36,3 +36,4 @@ jobs:
       - uses: actions/checkout@v4
       - run: docker build -t nexora-crm-backend:ci ./backend
 # Project version: Nexora CRM V2.7
+

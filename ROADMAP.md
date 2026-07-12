@@ -81,3 +81,4 @@ Nexora 3.0 should move the product from a working CRM core to a polished operati
 5. Webhooks and API keys.
 6. E2E test pack and production checklist.
 <!-- Project version: Nexora CRM V2.7 -->
+
