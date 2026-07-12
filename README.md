@@ -1,5 +1,4 @@
-# Nexora CRM V2.7
-
+# Nexora CRM V1.0
 Business CRM dashboard for clients, tasks and finance workflows in the KRYNEX Labs ecosystem.
 
 ## Product Overview
@@ -75,12 +74,19 @@ Nexora CRM is not a cybersecurity tool. Its public version avoids real secrets, 
 
 ## Roadmap
 
-- Add V2.4 public demo release checklist for hosted review.
-- Add richer public demo CRM seed data.
-- Add pipeline and deal board views.
-- Add read-only hosted demo mode.
-- Add CSV import/export for demo records.
-- Add lightweight settings and audit screens.
+### Already implemented
+
+- C++ Crow backend with PostgreSQL persistence, JWT auth and modular route handlers.
+- React/Vite dashboard for clients, tasks, finance and demo-mode preview.
+- Windows/MSVC build fixes, OpenSSL PBKDF2 password hashing and JWT base64url padding fix.
+- Production guardrails plus CTest coverage for password, JWT and utility behavior.
+
+### Will be implemented
+
+- Richer public demo CRM seed data and read-only hosted demo controls.
+- Pipeline and deal board views for sales workflow review.
+- CSV import/export for demo records and lightweight audit/settings screens.
+- End-to-end smoke tests for auth, clients, tasks and finance.
 
 ## KRYNEX Ecosystem
 
@@ -89,5 +95,5 @@ Nexora CRM represents the business SaaS side of KRYNEX Labs next to SentinelX, T
 ## License
 
 MIT.
-<!-- Project version: Nexora CRM V2.7 -->
+<!-- Project version: Nexora CRM V1.0 -->
 
