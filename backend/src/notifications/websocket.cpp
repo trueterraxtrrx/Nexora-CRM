@@ -29,3 +29,4 @@ void WebSocketManager::broadcast(int company_id, const nlohmann::json& msg) {
 // Project version: Nexora CRM V2.7
 
 
+
