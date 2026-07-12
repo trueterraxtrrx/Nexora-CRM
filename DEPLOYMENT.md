@@ -33,3 +33,4 @@ docker compose up --build
 - Do not publish private CRM records or databases.
 <!-- Project version: Nexora CRM V2.7 -->
 
+

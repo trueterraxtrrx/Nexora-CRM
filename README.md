@@ -97,3 +97,4 @@ Nexora CRM represents the business SaaS side of KRYNEX Labs next to SentinelX, T
 MIT.
 <!-- Project version: Nexora CRM V1.0 -->
 
+
