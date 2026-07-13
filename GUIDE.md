@@ -680,3 +680,4 @@ curl http://localhost:8000/metrics     # теперь будут данные
 
 
 
+
