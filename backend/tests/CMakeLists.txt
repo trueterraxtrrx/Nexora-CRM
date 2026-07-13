@@ -14,6 +14,7 @@ add_executable(crm_tests
     test_jwt.cpp
     test_password.cpp
     test_slugify.cpp
+    test_csv_exporter.cpp
 )
 
 target_include_directories(crm_tests PRIVATE
@@ -34,6 +35,7 @@ target_sources(crm_tests PRIVATE
     ../src/core/jwt.cpp
     ../src/core/password.cpp
     ../src/utils/slugify.cpp
+    ../src/export/csv_exporter.cpp
 )
 
 include(GoogleTest)

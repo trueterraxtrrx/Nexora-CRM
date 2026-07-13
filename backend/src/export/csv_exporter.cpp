@@ -1,4 +1,5 @@
 #include "export/csv_exporter.hpp"
+#include <stdexcept>
 #include <sstream>
 
 namespace crm::export_service {
@@ -58,6 +59,62 @@ std::string CsvExporter::finance_to_csv(const std::vector<std::map<std::string, 
            << escape_csv(row.at("date")) << "\n";
     }
     return ss.str();
+}
+
+std::vector<std::string> CsvExporter::parse_csv_line(const std::string& line) {
+    std::vector<std::string> fields;
+    std::string current;
+    bool quoted = false;
+    for (std::size_t i = 0; i < line.size(); ++i) {
+        const char c = line[i];
+        if (quoted && c == '"' && i + 1 < line.size() && line[i + 1] == '"') {
+            current.push_back('"');
+            ++i;
+        } else if (c == '"') {
+            quoted = !quoted;
+        } else if (c == ',' && !quoted) {
+            fields.push_back(current);
+            current.clear();
+        } else {
+            current.push_back(c);
+        }
+    }
+    if (quoted) {
+        throw std::runtime_error("unterminated CSV quote");
+    }
+    fields.push_back(current);
+    return fields;
+}
+
+std::vector<std::map<std::string, std::string>> CsvExporter::parse_csv(const std::string& csv) {
+    std::stringstream input(csv);
+    std::string line;
+    if (!std::getline(input, line)) {
+        return {};
+    }
+    if (!line.empty() && line.back() == '\r') {
+        line.pop_back();
+    }
+    const auto headers = parse_csv_line(line);
+    std::vector<std::map<std::string, std::string>> rows;
+    while (std::getline(input, line)) {
+        if (!line.empty() && line.back() == '\r') {
+            line.pop_back();
+        }
+        if (line.empty()) {
+            continue;
+        }
+        const auto fields = parse_csv_line(line);
+        if (fields.size() != headers.size()) {
+            throw std::runtime_error("CSV row width mismatch");
+        }
+        std::map<std::string, std::string> row;
+        for (std::size_t i = 0; i < headers.size(); ++i) {
+            row[headers[i]] = fields[i];
+        }
+        rows.push_back(std::move(row));
+    }
+    return rows;
 }
 
 } // namespace crm::export_service
