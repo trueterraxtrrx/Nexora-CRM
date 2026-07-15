@@ -117,6 +117,16 @@ std::vector<std::map<std::string, std::string>> CsvExporter::parse_csv(const std
     return rows;
 }
 
+void CsvExporter::require_headers(const std::vector<std::map<std::string, std::string>>& rows, const std::vector<std::string>& headers) {
+    for (const auto& row : rows) {
+        for (const auto& header : headers) {
+            if (row.find(header) == row.end()) {
+                throw std::runtime_error("missing CSV header: " + header);
+            }
+        }
+    }
+}
+
 } // namespace crm::export_service
 // Project version: Nexora CRM V2.7
 
