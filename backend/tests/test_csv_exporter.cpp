@@ -29,3 +29,10 @@ TEST(CsvExporterTest, RejectsMalformedRows) {
     EXPECT_THROW(CsvExporter::parse_csv("A\n\"broken\n"), std::runtime_error);
 }
 
+TEST(CsvExporterTest, ValidatesRequiredImportHeaders) {
+    const auto parsed = CsvExporter::parse_csv("Name,Email\nAlice,alice@example.com\n");
+
+    EXPECT_NO_THROW(CsvExporter::require_headers(parsed, {"Name", "Email"}));
+    EXPECT_THROW(CsvExporter::require_headers(parsed, {"Name", "Company"}), std::runtime_error);
+}
+
