@@ -28,3 +28,4 @@ TEST(CsvExporterTest, RejectsMalformedRows) {
     EXPECT_THROW(CsvExporter::parse_csv("A,B\n1\n"), std::runtime_error);
     EXPECT_THROW(CsvExporter::parse_csv("A\n\"broken\n"), std::runtime_error);
 }
+
