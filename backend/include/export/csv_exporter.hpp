@@ -13,6 +13,7 @@ public:
     static std::string finance_to_csv(const std::vector<std::map<std::string, std::string>>& data);
     static std::vector<std::map<std::string, std::string>> parse_csv(const std::string& csv);
     static void require_headers(const std::vector<std::map<std::string, std::string>>& rows, const std::vector<std::string>& headers);
+    static double sum_numeric_column(const std::vector<std::map<std::string, std::string>>& rows, const std::string& header);
 
 private:
     static std::string escape_csv(const std::string& field);

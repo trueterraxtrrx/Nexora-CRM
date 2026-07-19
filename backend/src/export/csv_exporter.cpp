@@ -127,6 +127,18 @@ void CsvExporter::require_headers(const std::vector<std::map<std::string, std::s
     }
 }
 
+double CsvExporter::sum_numeric_column(const std::vector<std::map<std::string, std::string>>& rows, const std::string& header) {
+    double total = 0.0;
+    for (const auto& row : rows) {
+        const auto value = row.find(header);
+        if (value == row.end() || value->second.empty()) {
+            continue;
+        }
+        total += std::stod(value->second);
+    }
+    return total;
+}
+
 } // namespace crm::export_service
 // Project version: Nexora CRM V2.7
 

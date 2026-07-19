@@ -36,3 +36,9 @@ TEST(CsvExporterTest, ValidatesRequiredImportHeaders) {
     EXPECT_THROW(CsvExporter::require_headers(parsed, {"Name", "Company"}), std::runtime_error);
 }
 
+TEST(CsvExporterTest, SumsFinanceImportAmounts) {
+    const auto parsed = CsvExporter::parse_csv("Amount,Category\n125.50,hosting\n74.50,support\n");
+
+    EXPECT_DOUBLE_EQ(CsvExporter::sum_numeric_column(parsed, "Amount"), 200.0);
+}
+
