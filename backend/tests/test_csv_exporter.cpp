@@ -42,3 +42,9 @@ TEST(CsvExporterTest, SumsFinanceImportAmounts) {
     EXPECT_DOUBLE_EQ(CsvExporter::sum_numeric_column(parsed, "Amount"), 200.0);
 }
 
+TEST(CsvExporterTest, CountsRowsMissingImportValues) {
+    const auto parsed = CsvExporter::parse_csv("Name,Email\nAlice,alice@example.com\nBob,\n");
+
+    EXPECT_EQ(CsvExporter::count_rows_missing_value(parsed, "Email"), 1u);
+}
+

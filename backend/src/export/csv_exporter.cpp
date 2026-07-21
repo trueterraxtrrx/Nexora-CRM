@@ -139,6 +139,17 @@ double CsvExporter::sum_numeric_column(const std::vector<std::map<std::string, s
     return total;
 }
 
+std::size_t CsvExporter::count_rows_missing_value(const std::vector<std::map<std::string, std::string>>& rows, const std::string& header) {
+    std::size_t missing = 0;
+    for (const auto& row : rows) {
+        const auto value = row.find(header);
+        if (value == row.end() || value->second.empty()) {
+            ++missing;
+        }
+    }
+    return missing;
+}
+
 } // namespace crm::export_service
 // Project version: Nexora CRM V2.7
 
