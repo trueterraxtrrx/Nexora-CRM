@@ -15,6 +15,7 @@ public:
     static void require_headers(const std::vector<std::map<std::string, std::string>>& rows, const std::vector<std::string>& headers);
     static double sum_numeric_column(const std::vector<std::map<std::string, std::string>>& rows, const std::string& header);
     static std::size_t count_rows_missing_value(const std::vector<std::map<std::string, std::string>>& rows, const std::string& header);
+    static double average_numeric_column(const std::vector<std::map<std::string, std::string>>& rows, const std::string& header);
 
 private:
     static std::string escape_csv(const std::string& field);
