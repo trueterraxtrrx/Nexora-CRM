@@ -10,6 +10,7 @@ Business CRM dashboard for clients, tasks and finance workflows in the KRYNEX La
 - C++ required-header validation for safe client, task and finance import workflows.
 - C++ finance import amount summarizer for fast CSV preview totals.
 - C++ missing-value counter for CRM import quality previews.
+- C++ finance import average calculator for quick CSV sanity checks.
 - Windows/MSVC build fixes, OpenSSL PBKDF2 password hashing and JWT base64url padding fix.
 - Production guardrails plus CTest coverage for password, JWT and utility behavior.
 
@@ -17,7 +18,7 @@ Business CRM dashboard for clients, tasks and finance workflows in the KRYNEX La
 
 - Richer public demo CRM seed data and read-only hosted demo controls.
 - Pipeline and deal board views for sales workflow review.
-- Import/export endpoint wiring, finance preview totals, missing-value review and lightweight audit/settings screens.
+- Import/export endpoint wiring, finance totals, averages, missing-value review and lightweight audit/settings screens.
 - End-to-end smoke tests for auth, clients, tasks and finance.
 
 <!-- Project version: Nexora CRM V1.0 -->

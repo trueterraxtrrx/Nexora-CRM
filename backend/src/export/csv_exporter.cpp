@@ -150,6 +150,20 @@ std::size_t CsvExporter::count_rows_missing_value(const std::vector<std::map<std
     return missing;
 }
 
+double CsvExporter::average_numeric_column(const std::vector<std::map<std::string, std::string>>& rows, const std::string& header) {
+    double total = 0.0;
+    std::size_t count = 0;
+    for (const auto& row : rows) {
+        const auto value = row.find(header);
+        if (value == row.end() || value->second.empty()) {
+            continue;
+        }
+        total += std::stod(value->second);
+        ++count;
+    }
+    return count == 0 ? 0.0 : total / static_cast<double>(count);
+}
+
 } // namespace crm::export_service
 // Project version: Nexora CRM V2.7
 

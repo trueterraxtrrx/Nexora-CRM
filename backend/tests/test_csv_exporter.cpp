@@ -48,3 +48,9 @@ TEST(CsvExporterTest, CountsRowsMissingImportValues) {
     EXPECT_EQ(CsvExporter::count_rows_missing_value(parsed, "Email"), 1u);
 }
 
+TEST(CsvExporterTest, AveragesFinanceImportAmounts) {
+    const auto parsed = CsvExporter::parse_csv("Amount,Category\n125.50,hosting\n74.50,support\n");
+
+    EXPECT_DOUBLE_EQ(CsvExporter::average_numeric_column(parsed, "Amount"), 100.0);
+}
+
