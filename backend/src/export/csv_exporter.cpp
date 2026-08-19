@@ -5,11 +5,20 @@
 namespace crm::export_service {
 
 std::string CsvExporter::escape_csv(const std::string& field) {
-    if (field.find(',') == std::string::npos && field.find('"') == std::string::npos) {
-        return field;
+    std::string safe = field;
+    // Нейтрализуем CSV-формула-инъекцию (Excel/Sheets): поле, начинающееся с
+    // =, +, -, @ может быть интерпретировано как формула при открытии в таблице.
+    if (!safe.empty()) {
+        const char c0 = safe.front();
+        if (c0 == '=' || c0 == '+' || c0 == '-' || c0 == '@') {
+            safe.insert(safe.begin(), '\'');
+        }
+    }
+    if (safe.find(',') == std::string::npos && safe.find('"') == std::string::npos) {
+        return safe;
     }
     std::string escaped = "\"";
-    for (char c : field) {
+    for (char c : safe) {
         if (c == '"') escaped += "\"\"";
         else escaped += c;
     }

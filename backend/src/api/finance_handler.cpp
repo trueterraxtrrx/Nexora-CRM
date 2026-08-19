@@ -18,16 +18,16 @@ using json = nlohmann::json;
 template <typename Row>
 static json finance_to_json(const Row& r) {
     return {
-        {"id",          r["id"].as<int>()},
-        {"company_id",  r["company_id"].as<int>()},
-        {"type",        r["type"].as<std::string>()},
-        {"amount",      r["amount"].as<double>()},
-        {"currency",    r["currency"].as<std::string>()},
-        {"description", r["description"].is_null() ? nullptr : json(r["description"].as<std::string>())},
-        {"category",    r["category"].is_null()    ? nullptr : json(r["category"].as<std::string>())},
-        {"date",        r["date"].as<std::string>()},
-        {"client_id",   r["client_id"].is_null()   ? nullptr : json(r["client_id"].as<int>())},
-        {"created_at",  r["created_at"].as<std::string>()},
+        {"id",          r["id"].template as<int>()},
+        {"company_id",  r["company_id"].template as<int>()},
+        {"type",        r["type"].template as<std::string>()},
+        {"amount",      r["amount"].template as<double>()},
+        {"currency",    r["currency"].template as<std::string>()},
+        {"description", r["description"].is_null() ? nullptr : json(r["description"].template as<std::string>())},
+        {"category",    r["category"].is_null()    ? nullptr : json(r["category"].template as<std::string>())},
+        {"date",        r["date"].template as<std::string>()},
+        {"client_id",   r["client_id"].is_null()   ? nullptr : json(r["client_id"].template as<int>())},
+        {"created_at",  r["created_at"].template as<std::string>()},
     };
 }
 
@@ -40,8 +40,14 @@ void register_finance_routes(AppType& app) {
         if (!require_auth(req, res, ctx)) return;
         auto& claims = *ctx.claims;
 
-        int skip  = req.url_params.get("skip")  ? std::stoi(req.url_params.get("skip"))  : 0;
-        int limit = req.url_params.get("limit") ? std::stoi(req.url_params.get("limit")) : 100;
+        int skip = 0, limit = 100;
+        try {
+            skip  = req.url_params.get("skip")  ? std::stoi(req.url_params.get("skip"))  : 0;
+            limit = req.url_params.get("limit") ? std::stoi(req.url_params.get("limit")) : 100;
+        } catch (const std::exception&) {
+            res = json_error(400, "Некорректные параметры skip/limit");
+            return;
+        }
         limit = std::min(limit, 500);
 
         try {
@@ -148,8 +154,14 @@ void register_finance_routes(AppType& app) {
         // Год по умолчанию — текущий
         time_t now = time(nullptr);
         tm* tm_now = localtime(&now);
-        int year = req.url_params.get("year") ?
-            std::stoi(req.url_params.get("year")) : (tm_now->tm_year + 1900);
+        int year;
+        try {
+            year = req.url_params.get("year") ?
+                std::stoi(req.url_params.get("year")) : (tm_now->tm_year + 1900);
+        } catch (const std::exception&) {
+            res = json_error(400, "Некорректный параметр year");
+            return;
+        }
 
         try {
             res = get_db().with_transaction<crow::response>([&](pqxx::work& txn) {

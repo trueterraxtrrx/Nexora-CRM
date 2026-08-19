@@ -1,6 +1,7 @@
 #include "core/jwt.hpp"
 #include <openssl/hmac.h>
 #include <openssl/evp.h>
+#include <openssl/crypto.h>
 #include <spdlog/spdlog.h>
 #include <stdexcept>
 #include <ctime>
@@ -158,7 +159,9 @@ std::optional<JwtClaims> JwtService::verify_token(const std::string& token) cons
     std::string signing_input = header_b64 + "." + payload_b64;
     std::string expected_sig  = base64url_encode(hmac_sha256(signing_input, secret_));
 
-    if (sig_b64 != expected_sig) {
+    // Сравнение за постоянное время, чтобы не раскрывать подпись через тайминг-атаку
+    if (sig_b64.size() != expected_sig.size() ||
+        CRYPTO_memcmp(sig_b64.data(), expected_sig.data(), sig_b64.size()) != 0) {
         spdlog::debug("JWT signature mismatch");
         return std::nullopt;
     }

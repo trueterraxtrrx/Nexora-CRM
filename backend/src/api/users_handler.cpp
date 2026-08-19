@@ -27,16 +27,16 @@ static bool strong_password(const std::string& password) {
 template <typename Row>
 static json user_to_json(const Row& r) {
     return {
-        {"id",               r["id"].as<int>()},
-        {"company_id",       r["company_id"].as<int>()},
-        {"email",            r["email"].as<std::string>()},
-        {"full_name",        r["full_name"].is_null() ? nullptr : json(r["full_name"].as<std::string>())},
-        {"role",             r["role"].as<std::string>()},
-        {"is_active",        r["is_active"].as<bool>()},
-        {"notify_email",     r["notify_email"].as<bool>()},
-        {"telegram_chat_id", r["telegram_chat_id"].is_null() ? nullptr : json(r["telegram_chat_id"].as<std::string>())},
-        {"created_at",       r["created_at"].as<std::string>()},
-        {"last_login",       r["last_login"].is_null() ? nullptr : json(r["last_login"].as<std::string>())},
+        {"id",               r["id"].template as<int>()},
+        {"company_id",       r["company_id"].template as<int>()},
+        {"email",            r["email"].template as<std::string>()},
+        {"full_name",        r["full_name"].is_null() ? nullptr : json(r["full_name"].template as<std::string>())},
+        {"role",             r["role"].template as<std::string>()},
+        {"is_active",        r["is_active"].template as<bool>()},
+        {"notify_email",     r["notify_email"].template as<bool>()},
+        {"telegram_chat_id", r["telegram_chat_id"].is_null() ? nullptr : json(r["telegram_chat_id"].template as<std::string>())},
+        {"created_at",       r["created_at"].template as<std::string>()},
+        {"last_login",       r["last_login"].is_null() ? nullptr : json(r["last_login"].template as<std::string>())},
     };
 }
 

@@ -1,13 +1,17 @@
 #include "api/auth_handler.hpp"
+#include "core/config.hpp"
 #include "core/database.hpp"
 #include "core/jwt.hpp"
 #include "core/password.hpp"
+#include "core/rate_limiter.hpp"
 #include "utils/response.hpp"
 #include "utils/slugify.hpp"
+#include <openssl/evp.h>
 #include <spdlog/spdlog.h>
 #include <nlohmann/json.hpp>
 #include <algorithm>
 #include <cctype>
+#include <cstdint>
 #include <utility>
 
 namespace crm::api {
@@ -24,11 +28,33 @@ static bool strong_password(const std::string& password) {
     return has_upper && has_lower && has_digit;
 }
 
+// RateLimiter хранит счётчики по int-ключу (изначально задумывался под company_id).
+// До аутентификации company_id ещё не известен, поэтому используем соленый хэш
+// IP-адреса клиента, свёрнутый в int-бакет, чтобы не хранить сырые IP в памяти
+// и не завязываться на company_id.
+static int rate_limit_bucket(const std::string& client_ip) {
+    const std::string salted = get_config().jwt_secret + "|auth-rate-limit|" + client_ip;
+
+    unsigned char digest[EVP_MAX_MD_SIZE];
+    unsigned int digest_len = 0;
+    EVP_Digest(salted.data(), salted.size(), digest, &digest_len, EVP_sha256(), nullptr);
+
+    uint32_t bucket = 0;
+    for (unsigned int i = 0; i < digest_len; ++i) {
+        bucket = (bucket * 131u) + digest[i];
+    }
+    return static_cast<int>(bucket & 0x7fffffffu);
+}
+
 void register_auth_routes(AppType& app) {
 
     // ── POST /api/v1/auth/register ─────────────────────────────────────────
     CROW_ROUTE(app, "/api/v1/auth/register").methods(crow::HTTPMethod::Post)
     ([&app](const crow::request& req) -> crow::response {
+        // Защита от брутфорса регистрации: не более 5 попыток в минуту с одного IP
+        if (!RateLimiter::instance().allow_request(rate_limit_bucket(req.remote_ip_address), 5))
+            return json_error(429, "Слишком много попыток регистрации. Попробуйте позже.");
+
         auto body = parse_body(req);
         if (!body) return json_error(400, "Invalid JSON");
 
@@ -105,6 +131,10 @@ void register_auth_routes(AppType& app) {
     // ── POST /api/v1/auth/login ────────────────────────────────────────────
     CROW_ROUTE(app, "/api/v1/auth/login").methods(crow::HTTPMethod::Post)
     ([&app](const crow::request& req) -> crow::response {
+        // Защита от брутфорса логина: не более 10 попыток в минуту с одного IP
+        if (!RateLimiter::instance().allow_request(rate_limit_bucket(req.remote_ip_address), 10))
+            return json_error(429, "Слишком много попыток входа. Попробуйте позже.");
+
         auto body = parse_body(req);
         if (!body) return json_error(400, "Invalid JSON");
 

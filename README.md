@@ -85,6 +85,7 @@ Nexora CRM is not a cybersecurity tool. Its public version avoids real secrets, 
 - C++ finance import average calculator for quick CSV sanity checks.
 - Windows/MSVC build fixes, OpenSSL PBKDF2 password hashing and JWT base64url padding fix.
 - Production guardrails plus CTest coverage for password, JWT and utility behavior.
+- IP-based rate limiting on register/login, constant-time JWT signature and password hash comparisons, CSV formula-injection guarding on export, and validated skip/limit/year query params with proper 400 responses.
 
 ### Will be implemented
 

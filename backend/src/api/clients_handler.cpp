@@ -19,17 +19,17 @@ using json = nlohmann::json;
 template <typename Row>
 static json client_to_json(const Row& r) {
     return {
-        {"id",           r["id"].as<int>()},
-        {"company_id",   r["company_id"].as<int>()},
-        {"name",         r["name"].as<std::string>()},
-        {"email",        r["email"].is_null()        ? nullptr : json(r["email"].as<std::string>())},
-        {"phone",        r["phone"].is_null()        ? nullptr : json(r["phone"].as<std::string>())},
-        {"company_name", r["company_name"].is_null() ? nullptr : json(r["company_name"].as<std::string>())},
-        {"notes",        r["notes"].is_null()        ? nullptr : json(r["notes"].as<std::string>())},
-        {"tags",         r["tags"].is_null()         ? nullptr : json(r["tags"].as<std::string>())},
-        {"is_active",    r["is_active"].as<bool>()},
-        {"created_at",   r["created_at"].as<std::string>()},
-        {"updated_at",   r["updated_at"].as<std::string>()},
+        {"id",           r["id"].template as<int>()},
+        {"company_id",   r["company_id"].template as<int>()},
+        {"name",         r["name"].template as<std::string>()},
+        {"email",        r["email"].is_null()        ? nullptr : json(r["email"].template as<std::string>())},
+        {"phone",        r["phone"].is_null()        ? nullptr : json(r["phone"].template as<std::string>())},
+        {"company_name", r["company_name"].is_null() ? nullptr : json(r["company_name"].template as<std::string>())},
+        {"notes",        r["notes"].is_null()        ? nullptr : json(r["notes"].template as<std::string>())},
+        {"tags",         r["tags"].is_null()         ? nullptr : json(r["tags"].template as<std::string>())},
+        {"is_active",    r["is_active"].template as<bool>()},
+        {"created_at",   r["created_at"].template as<std::string>()},
+        {"updated_at",   r["updated_at"].template as<std::string>()},
     };
 }
 
@@ -45,8 +45,15 @@ void register_clients_routes(AppType& app) {
         auto search    = req.url_params.get("search");
         auto is_active = req.url_params.get("is_active");
         auto tag       = req.url_params.get("tag");
-        int skip  = req.url_params.get("skip")  ? std::stoi(req.url_params.get("skip"))  : 0;
-        int limit = req.url_params.get("limit") ? std::stoi(req.url_params.get("limit")) : 50;
+
+        int skip = 0, limit = 50;
+        try {
+            skip  = req.url_params.get("skip")  ? std::stoi(req.url_params.get("skip"))  : 0;
+            limit = req.url_params.get("limit") ? std::stoi(req.url_params.get("limit")) : 50;
+        } catch (const std::exception&) {
+            res = json_error(400, "Некорректные параметры skip/limit");
+            return;
+        }
         limit = std::min(limit, 200);
 
         try {

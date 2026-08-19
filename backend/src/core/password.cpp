@@ -112,7 +112,10 @@ bool verify_password(const std::string& plain, const std::string& hash) {
     std::array<char, 256> output{};
     char* result = crypt_rn(plain.c_str(), hash.c_str(), output.data(), static_cast<int>(output.size()));
     if (!result) return false;
-    return hash == std::string(result);
+    std::string result_str(result);
+    // Сравнение за постоянное время (защита от тайминг-атаки на хэш пароля)
+    if (hash.size() != result_str.size()) return false;
+    return CRYPTO_memcmp(hash.data(), result_str.data(), hash.size()) == 0;
 #endif
 }
 

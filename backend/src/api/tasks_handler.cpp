@@ -18,18 +18,18 @@ using json = nlohmann::json;
 template <typename Row>
 static json task_to_json(const Row& r) {
     return {
-        {"id",           r["id"].as<int>()},
-        {"company_id",   r["company_id"].as<int>()},
-        {"title",        r["title"].as<std::string>()},
-        {"description",  r["description"].is_null()  ? nullptr : json(r["description"].as<std::string>())},
-        {"status",       r["status"].as<std::string>()},
-        {"priority",     r["priority"].as<std::string>()},
-        {"deadline",     r["deadline"].is_null()     ? nullptr : json(r["deadline"].as<std::string>())},
-        {"client_id",    r["client_id"].is_null()    ? nullptr : json(r["client_id"].as<int>())},
-        {"assignee_id",  r["assignee_id"].is_null()  ? nullptr : json(r["assignee_id"].as<int>())},
-        {"created_at",   r["created_at"].as<std::string>()},
-        {"updated_at",   r["updated_at"].as<std::string>()},
-        {"completed_at", r["completed_at"].is_null() ? nullptr : json(r["completed_at"].as<std::string>())},
+        {"id",           r["id"].template as<int>()},
+        {"company_id",   r["company_id"].template as<int>()},
+        {"title",        r["title"].template as<std::string>()},
+        {"description",  r["description"].is_null()  ? nullptr : json(r["description"].template as<std::string>())},
+        {"status",       r["status"].template as<std::string>()},
+        {"priority",     r["priority"].template as<std::string>()},
+        {"deadline",     r["deadline"].is_null()     ? nullptr : json(r["deadline"].template as<std::string>())},
+        {"client_id",    r["client_id"].is_null()    ? nullptr : json(r["client_id"].template as<int>())},
+        {"assignee_id",  r["assignee_id"].is_null()  ? nullptr : json(r["assignee_id"].template as<int>())},
+        {"created_at",   r["created_at"].template as<std::string>()},
+        {"updated_at",   r["updated_at"].template as<std::string>()},
+        {"completed_at", r["completed_at"].is_null() ? nullptr : json(r["completed_at"].template as<std::string>())},
     };
 }
 
@@ -42,8 +42,14 @@ void register_tasks_routes(AppType& app) {
         if (!require_auth(req, res, ctx)) return;
         auto& claims = *ctx.claims;
 
-        int skip  = req.url_params.get("skip")  ? std::stoi(req.url_params.get("skip"))  : 0;
-        int limit = req.url_params.get("limit") ? std::stoi(req.url_params.get("limit")) : 50;
+        int skip = 0, limit = 50;
+        try {
+            skip  = req.url_params.get("skip")  ? std::stoi(req.url_params.get("skip"))  : 0;
+            limit = req.url_params.get("limit") ? std::stoi(req.url_params.get("limit")) : 50;
+        } catch (const std::exception&) {
+            res = json_error(400, "Некорректные параметры skip/limit");
+            return;
+        }
         limit = std::min(limit, 200);
 
         auto status_f   = req.url_params.get("status");

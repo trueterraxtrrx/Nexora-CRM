@@ -30,6 +30,8 @@ endif()
 find_path(PQXX_INCLUDE_DIR pqxx/pqxx REQUIRED)
 find_library(PQXX_LIBRARY pqxx REQUIRED)
 find_library(PQ_LIBRARY pq REQUIRED)
+find_library(PQ_COMMON_LIBRARY pgcommon REQUIRED)
+find_library(PQ_PORT_LIBRARY pgport REQUIRED)
 
 # Sources
 set(SOURCES
@@ -66,6 +68,8 @@ target_link_libraries(crm_backend PRIVATE
     Crow::Crow
     ${PQXX_LIBRARY}
     ${PQ_LIBRARY}
+    ${PQ_COMMON_LIBRARY}
+    ${PQ_PORT_LIBRARY}
     OpenSSL::SSL
     OpenSSL::Crypto
     nlohmann_json::nlohmann_json
@@ -74,6 +78,10 @@ target_link_libraries(crm_backend PRIVATE
     ${BCRYPT_LIBRARY}
     Threads::Threads
 )
+if(WIN32)
+    target_link_libraries(crm_backend PRIVATE ws2_32 secur32 crypt32 mswsock)
+    target_link_options(crm_backend PRIVATE -Wl,--allow-multiple-definition)
+endif()
 
 if(hiredis_FOUND)
     target_link_libraries(crm_backend PRIVATE hiredis::hiredis)
